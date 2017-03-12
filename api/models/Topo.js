@@ -31,7 +31,10 @@ module.exports = {
       enum: [4, 8, 16, 32],
       defaultsTo: 16,
     },
-    species: {
+    tiles: {
+      type: 'array',
+    },
+    plants: {
       type: 'array',
     },
 

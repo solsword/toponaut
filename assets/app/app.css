@@ -1,25 +1,58 @@
 /* app css stylesheet */
 
-.menu {
-  list-style: none;
-  border-bottom: 0.1em solid black;
-  margin-bottom: 2em;
-  padding: 0 0 0.5em;
+body {
+  background: #444;
+  color: #aaa;
+  font-size: 14pt;
 }
 
-.menu:before {
-  content: "[";
+a:link {
+  color: #67a;
+  text-decoration: none;
+  font-weight: bold;
 }
 
-.menu:after {
-  content: "]";
+a:visited {
+  color: #67a;
 }
 
-.menu > li {
-  display: inline;
+a:link:hover {
+  color: #89c;
 }
 
-.menu > li + li:before {
-  content: "|";
-  padding-right: 0.3em;
+.version {
+  position: absolute;
+  right: 0pt;
+  bottom: 0pt;
+  font-size: 8pt;
+  color: #aaa;
+  background: #666;
+  border: 1px solid #888;
+  border-radius: 4pt 0pt 0pt 0pt;
+  padding: 3pt;
+}
+
+.frame {
+  width: 40em;
+  max-width: 95%;
+  height: 40em;
+  max-height: 95%;
+  margin: auto;
+  margin-top: 8em;
+  background: #555;
+  border: 1pt solid #777;
+  padding: 16pt;
+}
+
+.vcenter {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  width: inherit;
+  height: inherit;
+}
+
+.main-canvas {
+  background: #aaa;
+  border: #999;
 }
