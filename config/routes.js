@@ -34,7 +34,7 @@ module.exports.routes = {
 
   '/': {
     view: 'homepage'
-  }
+  },
 
   /***************************************************************************
   *                                                                          *
@@ -45,5 +45,9 @@ module.exports.routes = {
   * for configuration options and examples.                                  *
   *                                                                          *
   ***************************************************************************/
+
+  'get /topo/root': 'TopoController.demo',
+  'get /world/:world/topo/get/:id': 'TopoController.get',
+  'post /world/:world/topo/add/:id': 'TopoController.add',
 
 };

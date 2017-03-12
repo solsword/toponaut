@@ -17,7 +17,7 @@ module.exports = {
 
   attributes: {
     id: {
-      type: 'string',
+      type: "string",
       size: 36,
       required: true,
       unique: true,
@@ -27,27 +27,30 @@ module.exports = {
       },
     },
     size: {
-      type: 'integer',
+      type: "integer",
       enum: [4, 8, 16, 32],
       defaultsTo: 16,
     },
     tiles: {
-      type: 'array',
+      type: "array",
     },
     plants: {
-      type: 'array',
+      type: "array",
     },
 
     // Relationships:
     cannonical_parent: {
-      model: 'topo',
+      model: "topo",
     },
     cannonical_children: {
-      collection: 'topo',
-      via: 'cannonical_parent',
+      collection: "topo",
+      via: "cannonical_parent",
     },
     generated_by: {
-      model: 'ography',
+      model: "ography",
+    },
+    world: {
+      model: "world",
     },
   }
 };

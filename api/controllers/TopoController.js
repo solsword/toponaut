@@ -6,19 +6,25 @@
  */
 
 module.exports = {
-  root: function (req, res) {
+  _config: {
+    // No default routes:
+    actions: false,
+    shortcuts: false,
+    rest: false,
+  },
+  demo: function (req, res) {
     // TODO: Real stuff here!
     return res.send(
       {
         id: "abc",
         size: 16,
         tiles: [
-          3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 4, 4, 3, 3, 3, 3,
-          3, 3, 2, 1, 2, 2, 2, 2, 2, 4, 4, 4, 3, 3, 3, 3,
+          2, 2, 2, 1, 1, 1, 2, 2, 4, 4, 4, 4, 3, 3, 3, 3,
+          2, 2, 2, 1, 2, 2, 2, 2, 4, 4, 4, 4, 3, 3, 3, 3,
           1, 2, 2, 1, 2, 2, 2, 4, 4, 4, 4, 4, 4, 3, 3, 3,
-          1, 2, 1, 1, 2, 2, 4, 4, 4, 4, 3, 4, 4, 3, 3, 3,
-          1, 2, 2, 1, 2, 4, 4, 4, 3, 3, 3, 4, 3, 3, 3, 3,
-          2, 2, 2, 2, 2, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+          1, 2, 1, 1, 2, 2, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3,
+          1, 2, 2, 1, 2, 4, 4, 4, 2, 2, 2, 4, 3, 3, 3, 3,
+          2, 2, 2, 2, 2, 4, 4, 2, 2, 2, 2, 3, 3, 3, 3, 3,
           2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 5, 3,
           1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 3, 5, 5, 5, 5,
           1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5, 5,
@@ -58,7 +64,20 @@ module.exports = {
     );
   },
   get: function (req, res) {
-    return res.send("Test");
+    TopoService.get(req.param("world"), req.param("id"), function (err, topo) {
+      if (err) { throw err; }
+      res.json(topo);
+    });
+  },
+  add: function (req, res) {
+    TopoService.add(
+      req.param("world"),
+      req.param("id"),
+      req.body,
+      function (err, result) {
+        if (err) { throw err; }
+        res.json(result);
+      }
+    );
   },
 };
-
