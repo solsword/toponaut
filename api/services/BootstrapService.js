@@ -52,7 +52,7 @@ module.exports = {
             }
           }
           return result;
-        }
+        },
         "refs": []
       },
       "bootstrap.og.forest_patch.-1": {
@@ -189,7 +189,7 @@ module.exports = {
           } else {
             return "d"; // dirt
           }
-        }
+        },
         "plants": function (x, y) {
           if (x == 0 || y == 0 || x == 3 || y == 3) {
             if (Math.random() < 0.7) {
@@ -239,7 +239,7 @@ module.exports = {
           }
         },
         "plants": function (x, y) {
-          if (this.get_tile(x, y) == "d") {
+          if (this.tiles[x + y * this.size] == "d") {
             if (Math.random() < 0.4) {
               return "tree";
             } else if (Math.random() < 0.9) {
@@ -271,7 +271,7 @@ module.exports = {
           }
         },
         "plants": function (x, y) {
-          if (this.get_tile(x, y) == "d") {
+          if (this.tiles[x + y * this.size] == "d") {
             if (Math.random() < 0.4) {
               return "tree";
             } else if (Math.random() < 0.9) {
@@ -318,7 +318,7 @@ module.exports = {
           }
         },
         "plants": function (x, y) {
-          if (this.get_tile(x, y) == "d") {
+          if (this.tiles[x + y * this.size] == "d") {
             if (Math.random() < 0.4) {
               return "tree";
             } else if (Math.random() < 0.9) {
@@ -377,7 +377,7 @@ module.exports = {
           }
         },
         "plants": function (x, y) {
-          if (this.get_tile(x, y) == "d") {
+          if (this.tiles[x + y * this.size] == "d") {
             if (Math.random() < 0.4) {
               return "tree";
             } else if (Math.random() < 0.9) {
@@ -479,47 +479,47 @@ module.exports = {
         "weight": 4, // rotations
         "rotations": [ "n", "e", "s", "w" ],
         "size": 4,
-        "tiles": {
+        "tiles": [
           "W", "W", "W", "W",
           "f", "f", "f", "W",
           "f", "f", "f", "W",
           "W", "f", "f", "W",
-        }
+        ]
       },
       "bootstrap.og.maze-tile.straight": {
         "name": "maze-tile",
         "weight": 2, // rotations
         "rotations": [ "n", "e" ],
         "size": 4,
-        "tiles": {
+        "tiles": [
           "W", "f", "f", "W",
           "W", "f", "f", "W",
           "W", "f", "f", "W",
           "W", "f", "f", "W",
-        }
+        ]
       },
       "bootstrap.og.maze-tile.tee": {
         "name": "maze-tile",
         "weight": 4, // rotations
         "rotations": [ "n", "e", "s", "w" ],
         "size": 4,
-        "tiles": {
+        "tiles": [
           "W", "f", "f", "W",
           "f", "f", "f", "f",
           "f", "f", "f", "f",
           "W", "W", "W", "W",
-        }
+        ]
       },
       "bootstrap.og.maze-tile.intersection": {
         "name": "maze-tile",
         "weight": 1,
         "size": 4,
-        "tiles": {
+        "tiles": [
           "W", "f", "f", "W",
           "f", "f", "f", "f",
           "f", "f", "f", "f",
           "W", "f", "f", "W",
-        }
+        ]
       },
     },
     "topos": {
@@ -533,7 +533,7 @@ module.exports = {
           "W","f","W","W","f","f","c","c","c","c","c","c","c","d","d","d",
           "W","f","f","W","f","c","c","c","f","f","f","c","d","d","d","d",
           "f","f","f","f","f","c","c","f","f","f","f","d","d","d","d","d",
-          "f","f""f","W","f","f","f","f","f","f","d","d","d","d","w","d",
+          "f","f","f","W","f","f","f","f","f","f","d","d","d","d","w","d",
           "W","f","f","W","f","f","f","f","f","f","f","d","w","w","w","w",
           "W","f","f","W","f","f","f","f","f","f","w","w","w","w","w","w",
           "W","f","f","W","W","W","W","W","f","f","w","w","w","w","w","w",

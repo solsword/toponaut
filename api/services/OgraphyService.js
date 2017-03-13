@@ -22,7 +22,51 @@ module.exports = {
       next(err, ography);
     });
   },
-  create: function(basis, next) {
+  orientations = "nesw",
+  get_rotation: function (frori, toori) {
+    var frn = orientations.indexOf(frori);
+    var ton = orientation.indexOf(toori);
+    if (frn < 0) { throw "Invalid from orientation: '" + frn + "'" }
+    if (ton < 0) { throw "Invalid to orientation: '" + ton + "'" }
+    return ton - frn;
+  }
+  transform_tools: function (frori, toori, size) {
+    var result = Object.create(null);
+    result.rot = OgraphyService.get_rotation(frori, toori);
+    result.cw_rot = result.rot; // clockwise normalized rotation
+    if (result.cw_rot < 0) {
+      result.cw_rot += 4;
+    }
+    if (result.cw_rot == 0) {
+      result.tf = function (x, y) {
+        return { "x": x, "y": y };
+      };
+      result.rtf = result.tf;
+    } else if (result.cw_rot == 1) {
+      result.tf = function (x, y) {
+        return { "x": size - 1 - y, "y": x };
+      };
+      result.rtf = function (nx, ny) {
+        return { "x": ny, "y": size - 1 - nx };
+      };
+    } else if (result.cw_rot == 2) {
+      result.tf = function (x, y) {
+        return { "x": size - 1 - x, "y": size - 1 - y };
+      };
+      result.rtf = result.tf;
+    } else if (result.cw_rot == 3) {
+      result.tf = function (x, y) {
+        return { "x": y, "y": size - 1 - x };
+      };
+      result.rtf = function (nx, ny) {
+        return { "x": size - 1 - ny, "y": nx };
+      };
+    } else {
+      throw "Invalid rotation count: " + result.cw_rot;
+    }
+    return result;
+  },
+  expand: function(basis) {
     results = [];
     if (!basis.split) {
       basis.split = 1;
@@ -57,15 +101,20 @@ module.exports = {
                   result.tiles[idx] = tiles.call(result, x, y);
                 } else {
                   // add a fresh tile
-                  result.tiles.push(tiles(x, y);
+                  result.tiles.push(tiles(x, y));
                 }
               }
             }
-          } else {
+          } else if (basis.tiles.slice) {
             result.tiles = basis.tiles.slice(0);
           } // TODO: real else case here w/ error?
-        } else {
-          throw "Basis is missing valid tiles property.";
+        }
+
+        if (!result.tiles) {
+          result.tiles = [];
+          for (var k = 0; k < result.size * result.size; ++k) {
+            result.tiles.push("?"); // default tile
+          }
         }
 
         // plants
@@ -86,23 +135,104 @@ module.exports = {
                   result.plants[idx] = plants.call(result, x, y);
                 } else {
                   // add a fresh tile
-                  result.plants.push(plants(x, y);
+                  result.plants.push(plants(x, y));
                 }
               }
             }
-          } else {
+          } else if (basis.plants.slice) {
             result.plants = basis.plants.slice(0);
           } // TODO: real else case here w/ error?
-        } else {
-          throw "Basis is missing valid plants property.";
+        }
+
+        if (!result.plants) {
+          result.plants = [];
+          for (var k = 0; k < result.size * result.size; ++k) {
+            result.plants.push(null); // default plant
+          }
         }
 
         // gens
         if (basis.hasOwnProperty("gens")) {
-          // TODO: HERE
+          if (basis.gens.call) {
+            result.gens = basis.gens.call(result);
+          } else if (basis.gens.slice) {
+            result.gens = []
+            for (k in basis.gens) {
+              og = basis.gens[k];
+              var ng = Object.create(null)
+              for (prp in og) {
+                if (og.hasOwnProperty(prp)) {
+                  ng[prp] = og[prp];
+                }
+              }
+              result.gens.push(ng);
+            }
+          }
         }
+
+        if (!result.gens) {
+          result.gens = [];
+        }
+
         // refs
+        if (basis.hasOwnProperty("refs")) {
+          if (basis.refs.call) {
+            result.refs = basis.refs.call(result);
+          } else if (basis.refs.slice) {
+            result.refs = []
+            for (k in basis.refs) {
+              or = basis.refs[k];
+              var nr = Object.create(null)
+              for (prp in or) {
+                if (or.hasOwnProperty(prp)) {
+                  nr[prp] = or[prp];
+                }
+              }
+              result.refs.push(nr);
+            }
+          }
+        }
+
+        if (!result.refs) {
+          result.refs = [];
+        }
+
+        // rotation:
+        var tt = OgraphyService.transform_tools("n", r, result.size);
+        if (r != "n") {
+          rtiles = [];
+          rplants = [];
+          for (var ny = 0; ny < result.size; ny += 1) {
+            for (var nx = 0; nx < result.size; nx += 1) {
+              var oc = tt.rtf(nx, ny);
+              rtiles.push(result.tiles[oc.x + oc.y*result.size]);
+              rplants.push(result.plants[oc.x + oc.y*result.size]);
+            }
+          }
+          result.tiles = rtiles;
+          result.plants = rplants;
+
+          for (k in result.gens) { // edit in-place (they're fresh)
+            gen = result.gens[k];
+            var nc = tt.tf(gen.x, gen.y);
+            gen.x = nc.x;
+            gen.y = nc.y;
+            gen.r = r; // change orientation:
+          }
+
+          for (k in result.refs) { // edit in-place (they're fresh)
+            ref = result.refs[k];
+            var nc = tt.tf(ref.x, ref.y);
+            ref.x = nc.x;
+            ref.y = nc.y;
+            ref.r = r; // change orientation:
+          }
+        }
+
+        // push result:
+        results.push(result);
       }
     }
+    return results;
   }
 };

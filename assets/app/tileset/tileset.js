@@ -5,7 +5,7 @@ angular.module('toponaut.tileset', [])
 .constant("TILESET", {
   default: {
     names: {
-      '_': "void",
+      '?': "void",
       'W': "wall",
       'f': "floor",
       'd': "dirt",
@@ -13,7 +13,7 @@ angular.module('toponaut.tileset', [])
       'w': "water",
     },
     colors: {
-      '_': ["#000", "#000"],
+      '?': ["#000", "#000"],
       'W': ["#fff", "#ddd"],
       'f': ["#888", "#666"],
       'd': ["#430", "#320"],
