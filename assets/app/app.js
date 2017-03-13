@@ -6,6 +6,7 @@ angular.module('toponaut', [
   'toponaut.attract',
   'toponaut.edit',
   'toponaut.version',
+  'toponaut.tileset',
   'toponaut.pane',
 ]).
 config([
@@ -22,40 +23,6 @@ config([
   "east": 1,
   "south": 2,
   "west": 3,
-})
-// TODO: Remove this (put it in tileset/tileset.js)
-.constant("TILESET", {
-  default: {
-    names: [
-      "void",
-      "wall",
-      "floor",
-      "dirt",
-      "chasm",
-      "water",
-    ],
-    colors: [
-      ["#000", "#000"],
-      ["#fff", "#ddd"],
-      ["#888", "#666"],
-      ["#430", "#320"],
-      ["#000", "#222"],
-      ["#038", "#25b"],
-    ],
-  },
-  bind: function(ctx, conf, tileset) {
-    return function (tile, x, y, size) {
-      ctx.fillStyle = tileset.colors[tile][1];
-      ctx.fillRect(x, y, size, size);
-      ctx.fillStyle = tileset.colors[tile][0];
-      ctx.fillRect(
-        x + size * conf.tile_border,
-        y + size * conf.tile_border,
-        size - 2 * size * conf.tile_border,
-        size - 2 * size * conf.tile_border
-      );
-    };
-  }
 })
 .service('TopoService', [
     '$http',
