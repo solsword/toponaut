@@ -32,10 +32,10 @@ module.exports = {
     },
     gens: {
       type: "array",
-    }
+    },
     refs: {
       type: "array",
-    }
+    },
 
     // Relationships:
     world: {
