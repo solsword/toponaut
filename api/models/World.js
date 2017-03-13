@@ -2,7 +2,7 @@
  * World.js
  *
  * @description :: A world holds global configuration and in particular, the
- *   base 'ography and ID of a root topo.
+ *   origin 'ography and ID of a root topo.
  * @docs        :: http://sailsjs.org/documentation/concepts/models-and-orm/models
  */
 
@@ -21,11 +21,19 @@ module.exports = {
     },
 
     // Relationships:
-    base_ography: {
+    origin: {
       model: 'ography',
     },
     root: {
       model: 'topo',
+    },
+    ographies: {
+      collection: "ography",
+      via: "world",
+    },
+    topos: {
+      collection: "topo",
+      via: "world",
     },
   }
 };

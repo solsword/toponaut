@@ -10,5 +10,12 @@ module.exports = {
     World.findOne({"id": id}).populate("root").exec(function (err, world) {
       next(err, world.root);
     });
-  }
+  },
+  get_origin: function(id, next) {
+    World.findOne({"id": id}).populate("origin").exec(
+      function (err, world) {
+        next(err, world.origin);
+      }
+    );
+  },
 };

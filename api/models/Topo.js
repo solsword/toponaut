@@ -37,8 +37,14 @@ module.exports = {
     plants: {
       type: "array",
     },
+    refs: {
+      type: "array",
+    },
 
     // Relationships:
+    world: {
+      model: "world",
+    },
     cannonical_parent: {
       model: "topo",
     },
@@ -48,9 +54,6 @@ module.exports = {
     },
     generated_by: {
       model: "ography",
-    },
-    world: {
-      model: "world",
     },
   }
 };

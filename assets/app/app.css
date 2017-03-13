@@ -21,7 +21,7 @@ a:link:hover {
 }
 
 .version {
-  position: absolute;
+  position: fixed;
   right: 0pt;
   bottom: 0pt;
   font-size: 8pt;

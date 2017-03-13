@@ -48,6 +48,8 @@ module.exports.routes = {
 
   'get /topo/root': 'TopoController.demo',
   'get /world/:world/topo/get/:id': 'TopoController.get',
-  'post /world/:world/topo/add/:id': 'TopoController.add',
+  'post /world/:world/topo/add': 'TopoController.add',
+  'get /world/:world/ology/get/:id': 'OgraphyController.get',
+  'post /world/:world/ology/add': 'OgraphyController.add',
 
 };

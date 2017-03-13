@@ -1,7 +1,6 @@
 bootstrap = {
   "ographies": {
     "bootstrap.og.root": {
-      "id": "bootstrap.og.root",
       "name": "root",
       "weight": 1,
       "size": 8,
@@ -31,7 +30,6 @@ bootstrap = {
       ]
     },
     "bootstrap.og.forest": {
-      "id": "bootstrap.og.forest",
       "name": "forest",
       "weight": 1,
       "size": 16,
@@ -49,7 +47,6 @@ bootstrap = {
       "refs": []
     },
     "bootstrap.og.forest_patch.-1": {
-      "id": "bootstrap.og.forest_patch.-1",
       "name": "forest_patch",
       "weight": 0.02,
       "size": 4,
@@ -57,7 +54,6 @@ bootstrap = {
       "refs": [ { "x": 0, "y": 0, "name": "forest" } ],
     },
     "bootstrap.og.forest_patch.0": {
-      "id": "bootstrap.og.forest_patch.0",
       "name": "forest_patch",
       "weight": 0.2,
       "size": 4,
@@ -70,7 +66,6 @@ bootstrap = {
       ],
     },
     "bootstrap.og.forest_patch.1": {
-      "id": "bootstrap.og.forest_patch.1",
       "name": "forest_patch",
       "weight": 1,
       "size": 4,
@@ -80,7 +75,6 @@ bootstrap = {
       ],
     },
     "bootstrap.og.forest_patch.2": {
-      "id": "bootstrap.og.forest_patch.2",
       "name": "forest_patch",
       "weight": 0.3,
       "size": 4,
@@ -90,7 +84,6 @@ bootstrap = {
       ],
     },
     "bootstrap.og.forest_patch.3": {
-      "id": "bootstrap.og.forest_patch.3",
       "name": "forest_patch",
       "weight": 0.05,
       "size": 4,
@@ -100,7 +93,6 @@ bootstrap = {
       ],
     },
     "bootstrap.og.forest_patch.4": {
-      "id": "bootstrap.og.forest_patch.4",
       "name": "forest_patch",
       "weight": 0.05,
       "size": 4,
@@ -110,7 +102,6 @@ bootstrap = {
       ],
     },
     "bootstrap.og.forest_patch.5": {
-      "id": "bootstrap.og.forest_patch.5",
       "name": "forest_patch",
       "weight": 0.01,
       "size": 4,
@@ -120,7 +111,6 @@ bootstrap = {
       ],
     },
     "bootstrap.og.grove.1": {
-      "id": "bootstrap.og.grove.1",
       "name": "grove",
       "weight": 1,
       "split": 10,
@@ -137,7 +127,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.grove.2": {
-      "id": "bootstrap.og.grove.2",
       "name": "grove",
       "weight": 0.5,
       "split": 5,
@@ -165,7 +154,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.glade.1": {
-      "id": "bootstrap.og.glade.1",
       "name": "glade",
       "weight": 1,
       "split": 10,
@@ -182,7 +170,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.pond.1": {
-      "id": "bootstrap.og.pond.1",
       "name": "pond",
       "weight": 1,
       "split": 10,
@@ -215,7 +202,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.meadow.1": {
-      "id": "bootstrap.og.meadow.1",
       "name": "meadow",
       "weight": 1,
       "split": 10,
@@ -232,7 +218,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.ruins.1": {
-      "id": "bootstrap.og.ruins.1",
       "name": "ruins",
       "weight": 1,
       "split": 10,
@@ -265,7 +250,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.ruins.2": {
-      "id": "bootstrap.og.ruins.2",
       "name": "ruins",
       "weight": 1,
       "split": 10,
@@ -311,7 +295,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.ruins.3": {
-      "id": "bootstrap.og.ruins.3",
       "name": "ruins",
       "weight": 1,
       "split": 10,
@@ -359,7 +342,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.ruins.4": {
-      "id": "bootstrap.og.ruins.4",
       "name": "ruins",
       "weight": 1,
       "split": 10,
@@ -419,7 +401,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.ruins.5": {
-      "id": "bootstrap.og.ruins.5",
       "name": "ruins",
       "weight": 2,
       "split": 10,
@@ -441,7 +422,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.ruins.6": {
-      "id": "bootstrap.og.ruins.6",
       "name": "ruins",
       "weight": 1,
       "size": 4,
@@ -450,7 +430,6 @@ bootstrap = {
       "refs": [ { "x": 0, "y": 0, "name": "maze" } ]
     },
     "bootstrap.og.maze.0": {
-      "id": "bootstrap.og.maze.0",
       "name": "maze",
       "weight": 1,
       "split": 10,
@@ -487,7 +466,6 @@ bootstrap = {
       },
     },
     "bootstrap.og.maze-tile.corner": {
-      "id": "bootstrap.og.maze-tile.corner",
       "name": "maze-tile",
       "weight": 4, // rotations
       "rotations": [ "n", "e", "s", "w" ],
@@ -500,7 +478,6 @@ bootstrap = {
       }
     },
     "bootstrap.og.maze-tile.straight": {
-      "id": "bootstrap.og.maze-tile.straight",
       "name": "maze-tile",
       "weight": 2, // rotations
       "rotations": [ "n", "e" ],
@@ -513,7 +490,6 @@ bootstrap = {
       }
     },
     "bootstrap.og.maze-tile.tee": {
-      "id": "bootstrap.og.maze-tile.tee",
       "name": "maze-tile",
       "weight": 4, // rotations
       "rotations": [ "n", "e", "s", "w" ],
@@ -526,7 +502,6 @@ bootstrap = {
       }
     },
     "bootstrap.og.maze-tile.intersection": {
-      "id": "bootstrap.og.maze-tile.intersection",
       "name": "maze-tile",
       "weight": 1,
       "size": 4,
