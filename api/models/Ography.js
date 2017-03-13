@@ -19,10 +19,15 @@ module.exports = {
         return uuid.v4();
       },
     },
+    name: {
+      type; "string",
+      required: true,
+    },
     size: {
       type: "integer",
       enum: [4, 8, 16, 32],
       defaultsTo: 16,
+      required: true,
     },
     tiles: {
       type: "array",
@@ -47,4 +52,3 @@ module.exports = {
     }
   }
 };
-

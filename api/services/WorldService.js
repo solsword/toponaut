@@ -18,4 +18,16 @@ module.exports = {
       }
     );
   },
+  set_root: function(id, root, next) {
+    World.findOne({"id": id}).exec(function(err, world) {
+      world.root = root;
+      next(err, world);
+    });
+  },
+  set_origin: function(id, origin, next) {
+    World.findOne({"id": id}).exec(function(err, world) {
+      world.origin = origin;
+      next(err, world);
+    });
+  },
 };

@@ -7,10 +7,11 @@
  */
 
 module.exports = {
+  // A base set of ographies for defining a world.
   content: {
     "ographies": {
-      "bootstrap.og.root": {
-        "name": "root",
+      "bootstrap.og.origin": {
+        "name": "origin",
         "weight": 1,
         "size": 8,
         "tiles": [
@@ -521,10 +522,8 @@ module.exports = {
           "W", "f", "f", "W",
         ]
       },
-    },
-    "topos": {
-      "ruins": {
-        "id": "bootstrap.topo.ruins",
+      "bootstrap.og.demo.ruins": {
+        "name": "demo.ruins",
         "size": 16,
         "tiles": [
           "f","f","f","W","W","W","f","f","c","c","c","c","d","d","d","d",
@@ -544,28 +543,46 @@ module.exports = {
           "f","f","f","f","f","f","w","w","w","w","w","w","w","w","w","w",
           "f","f","f","f","f","w","w","w","w","w","w","w","w","w","w","w"
         ],
-        "plants": [
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ],
+        "plants": function (x, y) {
+          if (this.tiles[x + y * this.size] == "d") {
+            if (Math.random() < 0.4) {
+              return "tree";
+            } else if (Math.random() < 0.9) {
+              return "grass";
+            } else {
+              return null;
+            }
+          } else {
+            if (Math.random() < 0.4) {
+              return "ivy";
+            } else if (Math.random() < 0.3) {
+              return "moss";
+            } else {
+              return null;
+            }
+          }
+        },
         "refs": [
-          { "x": 9, "y": 5, "id": "bootstrap.topo.ruins" }
+          { "x": 9, "y": 5, "name": "demo.ruins" }
         ]
       }
-    }
+    },
   },
+  // Takes the content above and unfolds each ography basis into the given
+  // world. The ography named 'origin' is set as the world's origin.
+  pull: function(world) {
+    for (var i in BootstrapService.content.ographies) {
+      unfolded = OgraphyService.unfold(BootstrapService.content.ographies[i]);
+      for (var j in unfolded) {
+        OgraphyService.add(world, unfolded[j], function (err, added) {
+          if (err) { throw err; }
+          if (added.name == "origin") {
+            WorldService.set_origin(world.id, added, function(err, _) {
+              if (err) { throw err; }
+            });
+          }
+        });
+      }
+    }
+  }
 }

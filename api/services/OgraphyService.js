@@ -6,6 +6,7 @@
  */
 
 module.exports = {
+  // basic manipulation:
   get: function (world, id, next) {
     if (id == "origin") {
       WorldService.get_origin(world, function (err, ography) {
@@ -17,11 +18,13 @@ module.exports = {
       });
     }
   },
-  add: function (world, id, ography, next) {
+  add: function (world, ography, next) {
     Ography.create(ography).exec(function (err, ography) {
       next(err, ography);
     });
   },
+
+  // data & helpers for rotation
   orientations = "nesw",
   get_rotation: function (frori, toori) {
     var frn = orientations.indexOf(frori);
@@ -66,7 +69,12 @@ module.exports = {
     }
     return result;
   },
-  expand: function(basis) {
+
+  // Unfolding takes an ography basis and constructs an array of ographies from
+  // it. The number is determined by the split and rotations properties. The
+  // sum of the weights of ographies in this list will be equal to the original
+  // weight property of the basis.
+  unfold: function(basis) {
     results = [];
     if (!basis.split) {
       basis.split = 1;
@@ -234,5 +242,37 @@ module.exports = {
       }
     }
     return results;
+  },
+
+  // Picks an ography to expand given a name. Passes the chosen ography to the
+  // next function.
+  pick: function (world, name, next) {
+    // TODO: Accept either world or ID
+    possibilities = Ography.find({"world": world.id, "name": name}).exec(
+      function (err, ographies) {
+        var chosen = Math.floor(Math.random() * ographies.length);
+        next(err, ographies[chosen]);
+      }
+    );
+  }
+
+  // Creates a new instance of this ography as a topo, and adds it to the
+  // ography's world, passing the finished topo to the given next function.
+  instantiate: function (ography, next) {
+    // TODO: Accept either world or ID
+    var result = Object.create(null);
+
+    // Hook up relationships:
+    result.generated_by = ography;
+    ography.generated_topos.push(result);
+
+    result.name = ography.name;
+    result.size = ography.size;
+
+    result.tiles = ography.tiles.slice(0);
+    result.plants = ography.plants.slice(0);
+
+    // TODO: Handle gens
+    // TODO: Handle refs
   }
 };
