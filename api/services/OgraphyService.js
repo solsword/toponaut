@@ -25,14 +25,14 @@ module.exports = {
   },
 
   // data & helpers for rotation
-  orientations = "nesw",
+  orientations : "nesw",
   get_rotation: function (frori, toori) {
     var frn = orientations.indexOf(frori);
     var ton = orientation.indexOf(toori);
     if (frn < 0) { throw "Invalid from orientation: '" + frn + "'" }
     if (ton < 0) { throw "Invalid to orientation: '" + ton + "'" }
     return ton - frn;
-  }
+  },
   transform_tools: function (frori, toori, size) {
     var result = Object.create(null);
     result.rot = OgraphyService.get_rotation(frori, toori);
@@ -45,6 +45,12 @@ module.exports = {
         return { "x": x, "y": y };
       };
       result.rtf = result.tf;
+      result.offsets = [];
+      for (var y = 0; y < size; y += 1) {
+        for (var x = 0; x < size; x += 1) {
+          offsets.push({"fx": x, "fy": y, "tx": x, "ty": y});
+        }
+      }
     } else if (result.cw_rot == 1) {
       result.tf = function (x, y) {
         return { "x": size - 1 - y, "y": x };
@@ -52,11 +58,23 @@ module.exports = {
       result.rtf = function (nx, ny) {
         return { "x": ny, "y": size - 1 - nx };
       };
+      result.offsets = [];
+      for (var y = 0; y < size; y += 1) {
+        for (var x = 0; x < size; x += 1) {
+          offsets.push({"fx": x, "fy": y, "tx": -y, "ty": x});
+        }
+      }
     } else if (result.cw_rot == 2) {
       result.tf = function (x, y) {
         return { "x": size - 1 - x, "y": size - 1 - y };
       };
       result.rtf = result.tf;
+      result.offsets = [];
+      for (var y = 0; y < size; y += 1) {
+        for (var x = 0; x < size; x += 1) {
+          offsets.push({"fx": x, "fy": y, "tx": -x, "ty": -y});
+        }
+      }
     } else if (result.cw_rot == 3) {
       result.tf = function (x, y) {
         return { "x": y, "y": size - 1 - x };
@@ -64,6 +82,12 @@ module.exports = {
       result.rtf = function (nx, ny) {
         return { "x": size - 1 - ny, "y": nx };
       };
+      result.offsets = [];
+      for (var y = 0; y < size; y += 1) {
+        for (var x = 0; x < size; x += 1) {
+          offsets.push({"fx": x, "fy": y, "tx": y, "ty": -x});
+        }
+      }
     } else {
       throw "Invalid rotation count: " + result.cw_rot;
     }
@@ -246,25 +270,35 @@ module.exports = {
 
   // Picks an ography to expand given a name. Passes the chosen ography to the
   // next function.
-  pick: function (world, name, next) {
-    // TODO: Accept either world or ID
-    possibilities = Ography.find({"world": world.id, "name": name}).exec(
+  pick: function (world_or_id, name, next) {
+    var world_id = world_or_id;
+    if (world_or_id.hasOwnProperty("id")) {
+      world_id = world_or_id.id;
+    }
+    possibilities = Ography.find({"world": world_id, "name": name}).exec(
       function (err, ographies) {
         var chosen = Math.floor(Math.random() * ographies.length);
         next(err, ographies[chosen]);
       }
     );
-  }
+  },
 
-  // Creates a new instance of this ography as a topo, and adds it to the
-  // ography's world, passing the finished topo to the given next function.
-  instantiate: function (ography, next) {
-    // TODO: Accept either world or ID
+  // Creates a new instance of this ography as a topo, passing the result to
+  // the given next function. Does not add the generated topo to the world or
+  // hook it up as a child of the ography.
+  instantiate: function (ography_or_id, next) {
+    var ography = ography_or_id;
+    if (!ography.hasOwnProperty("id")) {
+      ography = Ography.find({"id": ography_or_id}).exec(
+        function (err, ography) {
+          if (err) { throw err; }
+          // TODO: does this return chain out?
+          return ography;
+        }
+      );
+    }
+
     var result = Object.create(null);
-
-    // Hook up relationships:
-    result.generated_by = ography;
-    ography.generated_topos.push(result);
 
     result.name = ography.name;
     result.size = ography.size;
@@ -272,7 +306,26 @@ module.exports = {
     result.tiles = ography.tiles.slice(0);
     result.plants = ography.plants.slice(0);
 
+    for (var i in ography.gens) {
+      var g = ography.gens[i];
+      OgraphyService.pick(ography.world, g[i], function (err, chosen) {
+        OgraphyService.instantiate(chosen, function (err, instantiated) {
+          var tt = OgraphyService.transform_tools("n", g.r, instantiated.size);
+          for (j in tt.offsets) {
+            // TODO: HERE
+            tt.offsets[j].fx;
+            tt.offsets[j].fy;
+            tt.offsets[j].tx;
+            tt.offsets[j].ty;
+          }
+        });
+      });
+      OgraphyService.instantiate(
+      var subtopo
+    }
     // TODO: Handle gens
     // TODO: Handle refs
-  }
+  },
+
+  j
 };
