@@ -19,6 +19,9 @@ module.exports = {
         return uuid.v4();
       },
     },
+    name: {
+      type: 'string',
+    }
 
     // Relationships:
     origin: {

@@ -570,19 +570,31 @@ module.exports = {
   },
   // Takes the content above and unfolds each ography basis into the given
   // world. The ography named 'origin' is set as the world's origin.
-  pull: function(world) {
-    for (var i in BootstrapService.content.ographies) {
-      unfolded = OgraphyService.unfold(BootstrapService.content.ographies[i]);
-      for (var j in unfolded) {
-        OgraphyService.add(world, unfolded[j], function (err, added) {
-          if (err) { throw err; }
-          if (added.name == "origin") {
-            WorldService.set_origin(world.id, added, function(err, _) {
-              if (err) { throw err; }
-            });
-          }
-        });
+  pull: function(world_or_id) {
+    return Promise.map(
+      BootstrapService.content.ographies,
+      function (ography, idx, len) {
+        return BootstrapService.unfold(ography);
       }
-    }
-  }
+    ).each(function(unfolded) {
+      return Promise.map(
+        unfolded,
+        function (ography, idx, len) {
+          return OgraphyService.add(world, ography)
+        }
+      ).each(function(added) {
+        if (added.name == "origin") {
+          return Utils.or_id(
+            world_or_id
+          ).then(function(world_id) {
+            return WorldService.set_origin(world_id, added);
+          }).catch(
+            Utils.give_up
+          );
+        } else {
+          return added;
+        }
+      });
+    }).catch(Utils.give_up);
+  },
 }

@@ -19,79 +19,11 @@ module.exports = {
     }
   },
   add: function (world, ography, next) {
-    Ography.create(ography).exec(function (err, ography) {
-      next(err, ography);
+    ography.world = world;
+    Ography.create(ography).exec(function (err, added) {
+      world.ographies.push(added);
+      next(err, added);
     });
-  },
-
-  // data & helpers for rotation
-  orientations : "nesw",
-  get_rotation: function (frori, toori) {
-    var frn = orientations.indexOf(frori);
-    var ton = orientation.indexOf(toori);
-    if (frn < 0) { throw "Invalid from orientation: '" + frn + "'" }
-    if (ton < 0) { throw "Invalid to orientation: '" + ton + "'" }
-    return ton - frn;
-  },
-  transform_tools: function (frori, toori, size) {
-    var result = Object.create(null);
-    result.rot = OgraphyService.get_rotation(frori, toori);
-    result.cw_rot = result.rot; // clockwise normalized rotation
-    if (result.cw_rot < 0) {
-      result.cw_rot += 4;
-    }
-    if (result.cw_rot == 0) {
-      result.tf = function (x, y) {
-        return { "x": x, "y": y };
-      };
-      result.rtf = result.tf;
-      result.offsets = [];
-      for (var y = 0; y < size; y += 1) {
-        for (var x = 0; x < size; x += 1) {
-          offsets.push({"fx": x, "fy": y, "tx": x, "ty": y});
-        }
-      }
-    } else if (result.cw_rot == 1) {
-      result.tf = function (x, y) {
-        return { "x": size - 1 - y, "y": x };
-      };
-      result.rtf = function (nx, ny) {
-        return { "x": ny, "y": size - 1 - nx };
-      };
-      result.offsets = [];
-      for (var y = 0; y < size; y += 1) {
-        for (var x = 0; x < size; x += 1) {
-          offsets.push({"fx": x, "fy": y, "tx": -y, "ty": x});
-        }
-      }
-    } else if (result.cw_rot == 2) {
-      result.tf = function (x, y) {
-        return { "x": size - 1 - x, "y": size - 1 - y };
-      };
-      result.rtf = result.tf;
-      result.offsets = [];
-      for (var y = 0; y < size; y += 1) {
-        for (var x = 0; x < size; x += 1) {
-          offsets.push({"fx": x, "fy": y, "tx": -x, "ty": -y});
-        }
-      }
-    } else if (result.cw_rot == 3) {
-      result.tf = function (x, y) {
-        return { "x": y, "y": size - 1 - x };
-      };
-      result.rtf = function (nx, ny) {
-        return { "x": size - 1 - ny, "y": nx };
-      };
-      result.offsets = [];
-      for (var y = 0; y < size; y += 1) {
-        for (var x = 0; x < size; x += 1) {
-          offsets.push({"fx": x, "fy": y, "tx": y, "ty": -x});
-        }
-      }
-    } else {
-      throw "Invalid rotation count: " + result.cw_rot;
-    }
-    return result;
   },
 
   // Unfolding takes an ography basis and constructs an array of ographies from
@@ -191,12 +123,7 @@ module.exports = {
             result.gens = []
             for (k in basis.gens) {
               og = basis.gens[k];
-              var ng = Object.create(null)
-              for (prp in og) {
-                if (og.hasOwnProperty(prp)) {
-                  ng[prp] = og[prp];
-                }
-              }
+              var ng = Utils.copy_obj(og);
               result.gens.push(ng);
             }
           }
@@ -214,12 +141,7 @@ module.exports = {
             result.refs = []
             for (k in basis.refs) {
               or = basis.refs[k];
-              var nr = Object.create(null)
-              for (prp in or) {
-                if (or.hasOwnProperty(prp)) {
-                  nr[prp] = or[prp];
-                }
-              }
+              var nr = Utils.copy_obj(or);
               result.refs.push(nr);
             }
           }
@@ -230,7 +152,7 @@ module.exports = {
         }
 
         // rotation:
-        var tt = OgraphyService.transform_tools("n", r, result.size);
+        var tt = Utils.transform_tools("n", r, result.size);
         if (r != "n") {
           rtiles = [];
           rplants = [];
@@ -270,62 +192,141 @@ module.exports = {
 
   // Picks an ography to expand given a name. Passes the chosen ography to the
   // next function.
-  pick: function (world_or_id, name, next) {
-    var world_id = world_or_id;
-    if (world_or_id.hasOwnProperty("id")) {
-      world_id = world_or_id.id;
-    }
-    possibilities = Ography.find({"world": world_id, "name": name}).exec(
-      function (err, ographies) {
-        var chosen = Math.floor(Math.random() * ographies.length);
-        next(err, ographies[chosen]);
-      }
+  pick: function (world_or_id, name) {
+    Utils.or_id(
+      world_or_id
+    ).then(function (world_id) {
+      return Ography.find(
+        {"world": world_id, "name": name}
+      )
+    }).catch(
+      Utils.give_up
+    ).then(function (ographies) {
+      var chosen = Math.floor(Math.random() * ographies.length);
+      return ographies[chosen];
+    }).catch(
+      Utils.give_up
     );
   },
 
-  // Creates a new instance of this ography as a topo, passing the result to
-  // the given next function. Does not add the generated topo to the world or
-  // hook it up as a child of the ography.
-  instantiate: function (ography_or_id, next) {
-    var ography = ography_or_id;
-    if (!ography.hasOwnProperty("id")) {
-      ography = Ography.find({"id": ography_or_id}).exec(
-        function (err, ography) {
-          if (err) { throw err; }
-          // TODO: does this return chain out?
-          return ography;
+  // Creates a new instance of this ography as a topo, returning a promise.
+  // Does not add the generated topo to the world or hook it up as a child of
+  // the ography, and does not give the generated topo an ID or add it to the
+  // database.
+  instantiate: function (ography_or_id) {
+    Utils.or_obj(
+      ography_or_id,
+      Ography
+    ).catch(
+      Utils.give_up
+    ).then(function (ography) {
+      var result = Object.create(null);
+
+      result.name = ography.name;
+      result.size = ography.size;
+
+      result.tiles = ography.tiles.slice(0);
+      result.plants = ography.plants.slice(0);
+
+      // Handle gens recursively:
+      return Promise.each(
+        ography.gens,
+        function (gen, idx, len) {
+          return OgraphyService.pick(
+            ography.world,
+            gen.name
+          ).then(function (chosen) {
+            return OgraphyService.instantiate(
+              chosen
+            )
+          }).then(function (instance) {
+            var tt = Utils.transform_tools("n", gen.r, instance.size);
+            // copy over tiles and plants from the generated topo
+            for (var xo = 0; xo < instance.size; xo += 1) {
+              for (var yo = 0; yo < instance.size; yo += 1) {
+                var off = tt.rof(xo, yo);
+                result.tiles[
+                  gen.x + off.x + (gen.y + off.y) * result.size
+                ] = instance.tiles[
+                  xo + yo * instance.size
+                ];
+                result.plants[
+                  gen.x + off.x + (gen.y + off.y) * result.size
+                ] = instance.plants[
+                  xo + yo * instance.size
+                ];
+              }
+            }
+            // copy over refs
+            if (!result.refs) {
+              result.refs = [];
+            }
+            for (var j in instance.refs) {
+              var ref = Utils.copy_obj(instance.refs[j]);
+              var off = tt.rof(ref.x, ref.y);
+              ref.x = gen.x + off.x;
+              ref.y = gen.y + off.y;
+              ref.r = Utils.add_orientations(gen.r, ref.r);
+              result.refs.push(ref);
+            }
+          }).catch(
+            Utils.give_up
+          );
         }
-      );
-    }
-
-    var result = Object.create(null);
-
-    result.name = ography.name;
-    result.size = ography.size;
-
-    result.tiles = ography.tiles.slice(0);
-    result.plants = ography.plants.slice(0);
-
-    for (var i in ography.gens) {
-      var g = ography.gens[i];
-      OgraphyService.pick(ography.world, g[i], function (err, chosen) {
-        OgraphyService.instantiate(chosen, function (err, instantiated) {
-          var tt = OgraphyService.transform_tools("n", g.r, instantiated.size);
-          for (j in tt.offsets) {
-            // TODO: HERE
-            tt.offsets[j].fx;
-            tt.offsets[j].fy;
-            tt.offsets[j].tx;
-            tt.offsets[j].ty;
-          }
-        });
-      });
-      OgraphyService.instantiate(
-      var subtopo
-    }
-    // TODO: Handle gens
-    // TODO: Handle refs
+      ).then(
+        // Copy over refs (overwrite generated results if there's overlap):
+        for (var i in ography.refs) {
+          result.refs.push(Utils.copy_obj(ography.refs[i]));
+        }
+      ).then(
+        // Return result
+        return result;
+      )
+    }).catch(
+      Utils.give_up
+    );
   },
 
-  j
+  // Takes a ref that's either abstract (has a "name" property) or concrete
+  // (has an "id" property) and fills in its "topo" property, generating or
+  // looking up a topo as necessary. Returns the modified ref as a promise. If
+  // the ref already has a "topo" property it is returned unchanged. If a new
+  // topo is created, it is situated before being put into the ref.
+  actualize: function(world_id_or_p, parent_or_id_or_p, ref_or_p) {
+    return Promise.join(
+      Utils.or_id(world_id_or_p),
+      Utils.or_id(parent_or_id_or_p),
+      Promise.resolve(ref_or_p),
+      function (world_id, parent_id, ref) {
+        if (ref.hasOwnProperty("topo") && ref.topo) {
+          return Promise.resolve(ref);
+        } else if (ref.hasOwnProperty("id")) {
+          return TopoService.get(
+            world_id,
+            ref.id
+          ).then(function (topo) {
+            ref.topo = topo;
+            return ref;
+          }).catch(Utils.give_up);
+        } else if (ref.hasOwnProperty("name")) {
+          var ography_p = OgraphyService.pick(
+            world_id,
+            ref.name
+          );
+          return ography_p.then(function (chosen) {
+            return OgraphyService.instantiate(
+              chosen
+            ).catch(Utils.give_up);
+          }).then(function (instance) {
+            return TopoService.situate(parent_id, ography_p, instance);
+          }).then(function (situated) {
+            ref.topo = situated;
+            return ref;
+          }).catch(Utils.give_up);
+        } else { // don't know how to handle this...
+          return Promise.reject(Error("Can't actualize reference: " + ref));
+        }
+      }
+    ).catch(Utils.give_up);
+  }
 };

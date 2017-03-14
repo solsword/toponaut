@@ -39,11 +39,15 @@ module.exports = {
     },
     refs: {
       type: "array",
+      // TODO: Scrub ref.topo upon saving!
     },
 
     // Relationships:
     world: {
       model: "world",
+    },
+    generated_by: {
+      model: "ography",
     },
     cannonical_parent: {
       model: "topo",
@@ -51,9 +55,6 @@ module.exports = {
     cannonical_children: {
       collection: "topo",
       via: "cannonical_parent",
-    },
-    generated_by: {
-      model: "ography",
     },
   }
 };
