@@ -65,6 +65,7 @@ angular.module('toponaut.edit', ['ngRoute'])
       // starts.
       $scope.world = world_id;
       $scope.root_pane = null;
+
       return TopoService.root(world_id).then(function (root) {
         $scope.root_pane = new Pane(root, ORIENTATION.default);
         $scope.all_panes = Object.create(null);
@@ -76,18 +77,13 @@ angular.module('toponaut.edit', ['ngRoute'])
     });
 
     // Draw immediately:
-    $scope.draw().then(function () {
-      console.log("Done drawing.");
-    });
+    $scope.draw();
 
     // Set up a regular draw callback:
     $interval(
       // TODO: Use promises + timeouts and be clever!
       function () {
-        console.log("Interval");
-        $scope.draw().then(function () {
-          console.log("Done drawing frame.");
-        }).catch(function (err) { throw err; });
+        $scope.draw().catch(function (err) { throw err; });
       },
       //1000/30.0, // 30 FPS
       2000,

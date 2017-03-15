@@ -33,20 +33,15 @@ angular.module('toponaut.pane', [])
               );
             }
           }
-          console.log("levels: " + levels);
           if (levels > 0) {
-            var defer = $q.defer();
-            var result = defer.promise;
-            console.log("refs: ", this.topo.refs);
+            var result = $q.resolve(undefined);
             for (var ref of this.topo.refs) {
-              console.log("ref: ", ref);
+              var thispane = this;
               result = result.then(function () {
-                console.log("rdraw " + ref);
                 return TopoService.get(
-                  this.world,
+                  thispane.world,
                   ref.id
                 ).then(function (topo) {
-                  console.log("childdraw", child);
                   // TODO: WHY THIS?!? NO!
                   var child = new Pane(topo);
                   // TODO: ref orientation.
@@ -63,7 +58,7 @@ angular.module('toponaut.pane', [])
             }
             return result;
           } else {
-            return $q.defer().resolve(undefined);
+            return $q.resolve(undefined);
           }
         },
       }
