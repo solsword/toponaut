@@ -50,7 +50,7 @@ config([
         // TODO: Dear god cache this!
         'root': function(world_id) {
           var defer = $q.defer()
-          $http.get('/world/' + world_id + '/topo/root').success(
+          $http.get('/world/' + world_id + '/topo/get/root').success(
             function (resp) {
               defer.resolve(resp);
             }

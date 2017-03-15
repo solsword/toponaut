@@ -61,6 +61,43 @@ module.exports = {
       collection: "topo",
       via: "cannonical_parent",
     },
+
+    // Overrides:
+    toJSON: function() {
+      var result = Object.create(null);
+      for (var attr in Topo.attributes) {
+        if (this[attr] instanceof Function) { continue; }
+        if (!this.hasOwnProperty(attr)) {
+          console.error(Error("Record is missing attribute '" + attr + "'."));
+        }
+        result[attr] = this[attr];
+        if (result[attr]) {
+          if (Topo.attributes[attr].hasOwnProperty("model")) {
+            if (result[attr].hasOwnProperty("id")) {
+              result[attr] = result[attr].id;
+            }
+          } else if (Topo.attributes[attr].hasOwnProperty("collection")) {
+            var newlist = [];
+            for (var val of result[attr]) {
+              if (val.hasOwnProperty("id")) {
+                newlist.push(val.id);
+              } else {
+                newlist.push(val);
+              }
+            }
+            result[attr] = newlist;
+          }
+        }
+      }
+      var newrefs = [];
+      for (var ref of result.refs) {
+        var nr = Utils.copy_obj(ref);
+        delete nr.topo;
+        newrefs.push(nr);
+      }
+      result.refs = newrefs;
+      return result;
+    },
   }
 };
 

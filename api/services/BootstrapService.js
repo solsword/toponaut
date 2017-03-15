@@ -6,6 +6,8 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Services
  */
 
+var chalk = require('chalk');
+
 // Need full bluebird promises:
 var Promise = require('bluebird');
 
@@ -20,10 +22,10 @@ module.exports = {
       "tiles": [
         "d","d","d","d","d","d","d","d",
         "d","d","d","d","d","d","d","d",
-        "d","d","v","v","v","v","d","d",
-        "d","d","v","v","v","v","d","d",
-        "d","d","v","v","v","v","d","d",
-        "d","d","v","v","v","v","d","d",
+        "d","d","?","?","?","?","d","d",
+        "d","d","?","?","?","?","d","d",
+        "d","d","?","?","?","?","d","d",
+        "d","d","?","?","?","?","d","d",
         "d","d","d","d","d","d","d","d",
         "d","d","d","d","d","d","d","d"
       ],
@@ -585,14 +587,18 @@ module.exports = {
           Utils.give_up(Error("Failed to unfold ography."))
         ).then(function (unfolded) {
           if (unfolded.length == 1) {
-            Utils.log_info(
-              "...unfolded '" + ography.name + "' rule into " +
-              unfolded.length + " ography..."
+            sails.log.info(
+              chalk.gray(
+                "...unfolded '" + ography.name + "' rule into " +
+                unfolded.length + " ography..."
+              )
             );
           } else {
-            Utils.log_info(
-              "...unfolded '" + ography.name + "' rule into " +
-              unfolded.length + " ographies..."
+            sails.log.info(
+              chalk.gray(
+                "...unfolded '" + ography.name + "' rule into " +
+                unfolded.length + " ographies..."
+              )
             );
           }
           return unfolded;
@@ -624,16 +630,20 @@ module.exports = {
         Utils.give_up(Error("Failed to set world origin."))
       ).then(function (batch) {
         if (batch.length == 1) {
-          Utils.log_info(
-            "...added " + batch.length + " '" + batch[0].name + "' rule..."
+          sails.log.info(
+            chalk.gray(
+              "...added " + batch.length + " '" + batch[0].name + "' rule..."
+            )
           );
         } else if (batch.length > 1) {
-          Utils.log_info(
-            "...added " + batch.length + " '" + batch[0].name + "' rules..."
+          sails.log.info(
+            chalk.gray(
+              "...added " + batch.length + " '" + batch[0].name + "' rules..."
+            )
           );
         } else {
-          Utils.log_info(
-            "...added " + batch.length + " rules..."
+          sails.log.info(
+            chalk.gray("...added " + batch.length + " rules...")
           );
         }
         return batch;

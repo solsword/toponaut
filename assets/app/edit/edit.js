@@ -83,7 +83,7 @@ angular.module('toponaut.edit', ['ngRoute'])
       // TODO: Use promises + timeouts and be clever!
       function () { $scope.draw(); },
       //1000/30.0, // 30 FPS
-      1000,
+      2000,
       false // (no need to $digest)
     );
   }

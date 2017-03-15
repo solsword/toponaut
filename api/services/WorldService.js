@@ -5,6 +5,8 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Services
  */
 
+var chalk = require('chalk');
+
 module.exports = {
   default: null,
 
@@ -39,9 +41,8 @@ module.exports = {
   get_root: function(id) {
     return Utils.lookup(
       World,
-      id
-    ).populate(
-      "root"
+      id,
+      ["root"] // populate
     ).catch(
       Utils.give_up(Error("Failed to find world and populate root."))
     ).then(function (world) {
@@ -69,9 +70,8 @@ module.exports = {
   get_origin: function(id) {
     return Utils.lookup(
       World,
-      id
-    ).populate(
-      "origin"
+      id,
+      ["origin"] // populate
     ).catch(
       Utils.give_up(Error("Failed to find world and populate origin."))
     ).then(function (world) {

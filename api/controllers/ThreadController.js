@@ -6,6 +6,12 @@
  */
 
 module.exports = {
+  _config: {
+    // No default routes:
+    actions: false,
+    shortcuts: false,
+    rest: false,
+  },
 	
 };
 

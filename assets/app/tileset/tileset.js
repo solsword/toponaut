@@ -23,9 +23,16 @@ angular.module('toponaut.tileset', [])
   },
   bind: function(ctx, conf, tileset) {
     return function (tile, x, y, size) {
-      ctx.fillStyle = tileset.colors[tile][1];
+      var colors = null;
+      if (tile in tileset.colors) {
+        colors = tileset.colors[tile];
+      } else {
+        colors = tileset.colors['?'];
+        console.error("Tileset is missing tile '" + tile + "'.");
+      }
+      ctx.fillStyle = colors[1];
       ctx.fillRect(x, y, size, size);
-      ctx.fillStyle = tileset.colors[tile][0];
+      ctx.fillStyle = colors[0];
       ctx.fillRect(
         x + size * conf.tile_border,
         y + size * conf.tile_border,

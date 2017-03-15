@@ -55,8 +55,7 @@ module.exports = {
     if (!basis.hasOwnProperty("rotations")) {
       basis.rotations = [ "n" ];
     }
-    for (var i in basis.rotations) {
-      var r = basis.rotations[i];
+    for (var r of basis.rotations) {
       var weightshare = basis.rotations.length * basis.split;
       for (var j = 0; j < basis.split; j += 1) {
         result = {};
@@ -210,7 +209,7 @@ module.exports = {
   // Picks an ography to expand given a name. Passes the chosen ography to the
   // next function.
   pick: function (world_or_id, name) {
-    Utils.or_id(
+    return Utils.or_id(
       world_or_id
     ).then(function (world_id) {
       return Ography.find(
@@ -220,7 +219,7 @@ module.exports = {
       Utils.give_up(
         Error(
           "Failed to find suitable ography for name '" + name +
-          "' in world: '" + world_id + "'"
+          "' in world: '" + world_or_id + "'"
         )
       )
     ).then(function (ographies) {
@@ -236,7 +235,7 @@ module.exports = {
   // the ography, and does not give the generated topo an ID or add it to the
   // database.
   instantiate: function (ography_or_id) {
-    Utils.or_obj(
+    return Utils.or_obj(
       ography_or_id,
       Ography
     ).catch(
@@ -254,6 +253,8 @@ module.exports = {
       return Promise.each(
         ography.gens,
         function (gen, idx, len) {
+          // set default orientation
+          if (!gen.r) { gen.r = "n"; }
           return OgraphyService.pick(
             ography.world,
             gen.name
@@ -283,8 +284,9 @@ module.exports = {
             if (!result.refs) {
               result.refs = [];
             }
-            for (var j in instance.refs) {
-              var ref = Utils.copy_obj(instance.refs[j]);
+            for (var ir of instance.refs) {
+              var ref = Utils.copy_obj(ir);
+              if (!ref.r) { ref.r = "n"; } // default orientation
               var off = tt.rof(ref.x, ref.y);
               ref.x = gen.x + off.x;
               ref.y = gen.y + off.y;
@@ -296,24 +298,30 @@ module.exports = {
           );
         }
       ).then(function () {
-        // Copy over refs (overwrite generated results if there's overlap):
-        for (var i in ography.refs) {
-          result.refs.push(Utils.copy_obj(ography.refs[i]));
+        // Copy over refs:
+        if (!result.refs) {
+          result.refs = [];
+        }
+        for (var or of ography.refs) {
+          result.refs.push(Utils.copy_obj(or));
         }
       }).then(function () {
         // Return result
         return result;
       })
+    }).then(function (topo) {
+      return Topo.create(topo);
     }).catch(
       Utils.give_up(Error("Failed to instantiate ography."))
     );
   },
 
   // Takes a ref that's either abstract (has a "name" property) or concrete
-  // (has an "id" property) and fills in its "topo" property, generating or
-  // looking up a topo as necessary. Returns the modified ref as a promise. If
-  // the ref already has a "topo" property it is returned unchanged. If a new
-  // topo is created, it is situated before being put into the ref.
+  // (has an "id" property) and fills in its "topo" property (and the "id"
+  // property if it didn't have one), generating or looking up a topo as
+  // necessary. Returns the modified ref as a promise. If the ref already has a
+  // "topo" property it is returned unchanged. If a new topo is created, it is
+  // situated before being put into the ref.
   actualize: function(world_id_or_p, parent_or_id_or_p, ref_or_p) {
     return Promise.join(
       Utils.or_id(world_id_or_p),
@@ -328,6 +336,7 @@ module.exports = {
             ref.id
           ).then(function (topo) {
             ref.topo = topo;
+            ref.id = topo.id;
             return ref;
           }).catch(Utils.give_up(Error("Failed to fetch topo.")));
         } else if (ref.hasOwnProperty("name")) {
@@ -342,11 +351,12 @@ module.exports = {
           }).then(function (instance) {
             return TopoService.situate(parent_id, ography_p, instance);
           }).catch(
-            Utils.give_up(Erro("Failed to situate topo."))
+            Utils.give_up(Error("Failed to situate topo."))
           ).then(function (situated) {
             ref.topo = situated;
+            ref.id = situated.id;
             return ref;
-          }).catch(Utils.give_up(Error("Failed to set ref.topo.")));
+          }).catch(Utils.give_up(Error("Failed to set ref.topo/ref.id.")));
         } else { // don't know how to handle this...
           return Promise.reject(Error("Can't actualize reference: " + ref));
         }

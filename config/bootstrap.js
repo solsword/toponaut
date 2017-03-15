@@ -10,8 +10,10 @@
  * http://sailsjs.org/#!/documentation/reference/sails.config/sails.config.bootstrap.html
  */
 
+var chalk = require('chalk');
+
 module.exports.bootstrap = function(cb) {
-  Utils.log_info("Pullin bootstrap...");
+  sails.log.info(chalk.gray("Pulling bootstrap..."));
   var world = {};
   world.name = BootstrapService.default_world_name;
   World.create(world).then(function (world) {
@@ -21,8 +23,10 @@ module.exports.bootstrap = function(cb) {
   ).then(function (world) {
     return WorldService.set_default(world);
   }).then(function (world) {
-    Utils.log_info(
-      "...bootstrap pulled. Created default world '" + world.name + "'."
+    sails.log.info(
+      chalk.gray(
+        "...bootstrap pulled. Created default world '" + world.name + "'."
+      )
     );
     cb(); // continue sails lift
   });

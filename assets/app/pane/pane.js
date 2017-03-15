@@ -3,10 +3,11 @@
 angular.module('toponaut.pane', [])
 .factory('Pane', [
     "$http",
+    "$q",
     "TopoService",
     "ORIENTATION",
     "TILESET",
-    function($http, TopoService, ORIENTATION, TILESET) {
+    function($http, $q, TopoService, ORIENTATION, TILESET) {
       var Pane = function (topo) {
         this.id = 0;
         this.world = topo.world;
@@ -16,6 +17,8 @@ angular.module('toponaut.pane', [])
 
       Pane.prototype = {
         constructor: Pane,
+        // Takes a canvas, a configuration, offsets, a scale, and a number of
+        // levels to recurse, and returns a promise for drawing this pane.
         draw: function(canvas, conf, ox, oy, scale, levels) {
           var ctx = canvas.getContext("2d");
           var draw_tile = TILESET.bind(ctx, conf, TILESET.default);
@@ -30,22 +33,35 @@ angular.module('toponaut.pane', [])
               );
             }
           }
+          console.log("levels: " + levels);
           if (levels > 0) {
-            for (var i in this.topo.refs) {
-              // TODO: UNHACK THIS using ref.id
-              var ref = this.topo.refs[i];
-              // TODO: WHY THIS?!? NO!
-              var child = new Pane(TopoService.get(this.world, ref.id));
-              // TODO: ref orientation.
-              child.draw(
-                canvas,
-                conf,
-                ox + tile_size * scale * ref.x,
-                oy + tile_size * scale * ref.y,
-                scale/4.0,
-                levels-1
-              );
+            var defer = $q.defer();
+            var result = defer.promise;
+            for (var ref of this.topo.refs) {
+              result = result.then(function () {
+                console.log("rdraw " + ref);
+                return TopoService.get(
+                  this.world,
+                  ref.id
+                ).then(function (topo) {
+                  // TODO: WHY THIS?!? NO!
+                  var child = new Pane(topo);
+                  // TODO: ref orientation.
+                  console.log("childdraw", child);
+                  return child.draw(
+                    canvas,
+                    conf,
+                    ox + tile_size * scale * ref.x,
+                    oy + tile_size * scale * ref.y,
+                    scale/4.0,
+                    levels-1
+                  );
+                }).catch(function (err) { throw err; });
+              });
             }
+            return result;
+          } else {
+            return $q.defer().resolve(undefined);
           }
         },
       }
