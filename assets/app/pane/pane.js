@@ -37,17 +37,19 @@ angular.module('toponaut.pane', [])
           if (levels > 0) {
             var defer = $q.defer();
             var result = defer.promise;
+            console.log("refs: ", this.topo.refs);
             for (var ref of this.topo.refs) {
+              console.log("ref: ", ref);
               result = result.then(function () {
                 console.log("rdraw " + ref);
                 return TopoService.get(
                   this.world,
                   ref.id
                 ).then(function (topo) {
+                  console.log("childdraw", child);
                   // TODO: WHY THIS?!? NO!
                   var child = new Pane(topo);
                   // TODO: ref orientation.
-                  console.log("childdraw", child);
                   return child.draw(
                     canvas,
                     conf,
@@ -55,9 +57,9 @@ angular.module('toponaut.pane', [])
                     oy + tile_size * scale * ref.y,
                     scale/4.0,
                     levels-1
-                  );
+                  ).catch(function (err) { throw err; });
                 }).catch(function (err) { throw err; });
-              });
+              }).catch(function (err) { throw err; });
             }
             return result;
           } else {

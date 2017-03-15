@@ -76,15 +76,23 @@ angular.module('toponaut.edit', ['ngRoute'])
     });
 
     // Draw immediately:
-    $scope.draw();
+    $scope.draw().then(function () {
+      console.log("Done drawing.");
+    });
 
     // Set up a regular draw callback:
     $interval(
       // TODO: Use promises + timeouts and be clever!
-      function () { $scope.draw(); },
+      function () {
+        console.log("Interval");
+        $scope.draw().then(function () {
+          console.log("Done drawing frame.");
+        }).catch(function (err) { throw err; });
+      },
       //1000/30.0, // 30 FPS
       2000,
-      false // (no need to $digest)
+      // TODO: This parameter!
+      false // (need to call $digest to trigger callback from draw function)
     );
   }
 ]);
