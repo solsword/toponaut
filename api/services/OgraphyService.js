@@ -5,25 +5,42 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Services
  */
 
+// Need full bluebird promises:
+var Promise = require('bluebird');
+
 module.exports = {
   // basic manipulation:
-  get: function (world, id, next) {
-    if (id == "origin") {
-      WorldService.get_origin(world, function (err, ography) {
-        next(err, ography);
-      });
-    } else {
-      Ography.findOne({"id": id}).exec(function (err, ography) {
-        next(err, ography);
-      });
-    }
+  get: function (world, id) {
+    return Promise.join(
+      Utils.or_id(world),
+      Utils.or_id(id),
+      function (world_id, id) {
+        if (id == "origin") {
+          return WorldService.get_origin(world_id);
+        } else {
+          return Utils.lookup(Ography, id);
+        }
+      }
+    ).catch(Utils.give_up("Failed to get ography."));
   },
-  add: function (world, ography, next) {
-    ography.world = world;
-    Ography.create(ography).exec(function (err, added) {
-      world.ographies.push(added);
-      next(err, added);
-    });
+  add: function (world, ography) {
+    return Promise.join(
+      Utils.or_obj(world, World),
+      Utils.or_obj(ography, Ography),
+      function (world, ography) {
+        ography.world = world;
+        return Ography.create(
+          ography
+        ).then(function (added) {
+          world.ographies.push(added);
+          return world.save().then(function() { return added;});
+        }).catch(
+          Utils.give_up(Error("Failed save world and ography."))
+        );
+      }
+    ).catch(
+      Utils.give_up(Error("Failed add ography."))
+    );
   },
 
   // Unfolding takes an ography basis and constructs an array of ographies from
@@ -42,7 +59,7 @@ module.exports = {
       var r = basis.rotations[i];
       var weightshare = basis.rotations.length * basis.split;
       for (var j = 0; j < basis.split; j += 1) {
-        result = Object.create(null);
+        result = {};
         result.name = basis.name;
         result.weight = basis.weight / (weightshare);
         result.size = basis.size;
@@ -65,7 +82,7 @@ module.exports = {
                   result.tiles[idx] = tiles.call(result, x, y);
                 } else {
                   // add a fresh tile
-                  result.tiles.push(tiles(x, y));
+                  result.tiles.push(tiles.call(result, x, y));
                 }
               }
             }
@@ -99,7 +116,7 @@ module.exports = {
                   result.plants[idx] = plants.call(result, x, y);
                 } else {
                   // add a fresh tile
-                  result.plants.push(plants(x, y));
+                  result.plants.push(plants.call(result, x, y));
                 }
               }
             }
@@ -200,12 +217,17 @@ module.exports = {
         {"world": world_id, "name": name}
       )
     }).catch(
-      Utils.give_up
+      Utils.give_up(
+        Error(
+          "Failed to find suitable ography for name '" + name +
+          "' in world: '" + world_id + "'"
+        )
+      )
     ).then(function (ographies) {
       var chosen = Math.floor(Math.random() * ographies.length);
       return ographies[chosen];
     }).catch(
-      Utils.give_up
+      Utils.give_up(Error("Failed to pick ography from options."))
     );
   },
 
@@ -218,9 +240,9 @@ module.exports = {
       ography_or_id,
       Ography
     ).catch(
-      Utils.give_up
+      Utils.give_up(Error("Failed to get ography object."))
     ).then(function (ography) {
-      var result = Object.create(null);
+      var result = {};
 
       result.name = ography.name;
       result.size = ography.size;
@@ -270,20 +292,20 @@ module.exports = {
               result.refs.push(ref);
             }
           }).catch(
-            Utils.give_up
+            Utils.give_up(Error("Failed to paste generated instance."))
           );
         }
-      ).then(
+      ).then(function () {
         // Copy over refs (overwrite generated results if there's overlap):
         for (var i in ography.refs) {
           result.refs.push(Utils.copy_obj(ography.refs[i]));
         }
-      ).then(
+      }).then(function () {
         // Return result
         return result;
-      )
+      })
     }).catch(
-      Utils.give_up
+      Utils.give_up(Error("Failed to instantiate ography."))
     );
   },
 
@@ -307,7 +329,7 @@ module.exports = {
           ).then(function (topo) {
             ref.topo = topo;
             return ref;
-          }).catch(Utils.give_up);
+          }).catch(Utils.give_up(Error("Failed to fetch topo.")));
         } else if (ref.hasOwnProperty("name")) {
           var ography_p = OgraphyService.pick(
             world_id,
@@ -316,17 +338,19 @@ module.exports = {
           return ography_p.then(function (chosen) {
             return OgraphyService.instantiate(
               chosen
-            ).catch(Utils.give_up);
+            ).catch(Utils.give_up(Error("Failed to instantiate ography.")));
           }).then(function (instance) {
             return TopoService.situate(parent_id, ography_p, instance);
-          }).then(function (situated) {
+          }).catch(
+            Utils.give_up(Erro("Failed to situate topo."))
+          ).then(function (situated) {
             ref.topo = situated;
             return ref;
-          }).catch(Utils.give_up);
+          }).catch(Utils.give_up(Error("Failed to set ref.topo.")));
         } else { // don't know how to handle this...
           return Promise.reject(Error("Can't actualize reference: " + ref));
         }
       }
-    ).catch(Utils.give_up);
+    ).catch(Utils.give_up(Error("Failed to actualize ref.")));
   }
 };

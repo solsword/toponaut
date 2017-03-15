@@ -10,6 +10,8 @@
  */
 
 module.exports = {
+  autoPK: false,
+  schema: true,
 
   attributes: {
 

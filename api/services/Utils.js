@@ -5,12 +5,16 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Services
  */
 
+// Need full bluebird promises:
+var Promise = require('bluebird');
+
+var orientations = "nesw";
 module.exports = {
   // data & helpers for rotation
-  orientations : "nesw",
+  "orientations" : orientations,
   get_rotation: function (frori, toori) {
     var frn = orientations.indexOf(frori);
-    var ton = orientation.indexOf(toori);
+    var ton = orientations.indexOf(toori);
     if (frn < 0) { throw "Invalid from orientation: '" + frn + "'" }
     if (ton < 0) { throw "Invalid to orientation: '" + ton + "'" }
     return ton - frn;
@@ -23,8 +27,8 @@ module.exports = {
     return orientations[(ai + bi) % 4];
   },
   transform_tools: function (frori, toori, size) {
-    var result = Object.create(null);
-    result.rot = OgraphyService.get_rotation(frori, toori);
+    var result = {};
+    result.rot = Utils.get_rotation(frori, toori);
     result.cw_rot = result.rot; // clockwise normalized rotation
     if (result.cw_rot < 0) {
       result.cw_rot += 4;
@@ -81,7 +85,7 @@ module.exports = {
 
   // Helper for copying objects (one-layer deep)
   copy_obj: function(obj) {
-    var result = Object.create(null);
+    var result = {};
     for (prp in obj) {
       if (obj.hasOwnProperty(prp)) {
         result[prp] = obj[prp];
@@ -90,15 +94,48 @@ module.exports = {
     return result;
   },
 
+  // Looks up a module's name.
+  module_name: function(module) {
+    return module.adapter.identity;
+  },
+
+  // Does a find-by-id on the given model with failure-to-find as an error
+  // (promise rejection).
+  lookup: function(model, id) {
+    return model.findOne(
+      {"id": id}
+    ).then(
+      function (obj) {
+        if (obj == undefined) {
+          return Promise.reject(
+            Error(
+              "Failed to find '" + Utils.module_name(model) +
+              "' object with ID '" + id + "'."
+            )
+          );
+        }
+        return obj;
+      },
+      Utils.give_up(
+        Error(
+          "Error searching for '" + Utils.module_name(model) +
+          "' object with ID '" + id + "'."
+        )
+      )
+    );
+  },
+
   // Helpers for object-or-id pattern
   or_id: function(obj_or_id_or_p) {
     return Promise.resolve(
       obj_or_id_or_p
     ).then(function (obj_or_id) {
-      if (obj_or_id.hasOwnProperty("id")) {
+      if (typeof(obj_or_id) == "string") {
+        return Promise.resolve(obj_or_id);
+      } else if (obj_or_id.hasOwnProperty("id")) {
         return Promise.resolve(obj_or_id.id);
       } else {
-        return Promise.resolve(obj_or_id);
+        return Promise.reject(Error("Object doesn't have an ID."));
       }
     });
   },
@@ -110,12 +147,16 @@ module.exports = {
         Promise.resolve(obj_or_id_or_p),
         Promise.resolve(model_or_p),
         function (obj_or_id, model) {
-          if (obj_or_id.hasOwnProperty("id")) {
-            return Promise.resolve(obj_or_id);
+          if (typeof(obj_or_id) == "string") {
+            return Utils.lookup(
+              model,
+              obj_or_id
+            ).catch(
+              Utils.give_up(Error("Failed to find object given ID."))
+            );
           } else {
-            return model.findOne(
-              {"id": obj_or_id}
-            ).catch(Utils.give_up);
+            // TODO: some attempt at error detection here?
+            return Promise.resolve(obj_or_id);
           }
         }
       );
@@ -123,5 +164,13 @@ module.exports = {
   },
 
   // Standard give-up function for catching broken promises
-  give_up: function(error) { throw error; },
+  give_up: function(anchor) {
+    return function(error) {
+      console.error("\x1b[31m");
+      console.error(anchor);
+      console.error("\x1b[0m");
+      console.error("...");
+      throw error;
+    }
+  },
 }

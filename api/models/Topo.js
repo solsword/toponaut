@@ -13,7 +13,12 @@
  * @docs        :: http://sailsjs.org/documentation/concepts/models-and-orm/models
  */
 
+// Not loaded fast enough otherwise
+var uuid = require('uuid');
+
 module.exports = {
+  autoPK: false,
+  schema: true,
 
   attributes: {
     id: {

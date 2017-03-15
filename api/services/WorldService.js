@@ -9,12 +9,13 @@ module.exports = {
   // If there isn't yet a concrete root, instantiates a new topo based on the
   // origin. Returns a promise.
   get_root: function(id) {
-    return World.findOne(
-      {"id": id}
+    return Utils.lookup(
+      World,
+      id
     ).populate(
       "root"
     ).catch(
-      Utils.give_up
+      Utils.give_up(Error("Failed to find world and populate root."))
     ).then(function (world) {
       if (world.hasOwnProperty("root") && world.root) {
         return world.root;
@@ -30,7 +31,7 @@ module.exports = {
           );
         }).then(function (situated) {
           world.root = situated;
-          return World.save(world).then(function () {
+          return world.save().then(function () {
             return situated;
           });
         });
@@ -38,12 +39,13 @@ module.exports = {
     });
   },
   get_origin: function(id) {
-    return World.findOne(
-      {"id": id}
+    return Utils.lookup(
+      World,
+      id
     ).populate(
       "origin"
     ).catch(
-      Utils.give_up
+      Utils.give_up(Error("Failed to find world and populate origin."))
     ).then(function (world) {
       return world.origin;
     });
@@ -53,10 +55,10 @@ module.exports = {
       id,
       World
     ).catch(
-      Utils.give_up
+      Utils.give_up(Error("Failed to find world object."))
     ).then(function(world) {
       world.root = root;
-      return World.save(world).then(function () {
+      return world.save().then(function () {
         return root;
       });
     });
@@ -66,10 +68,10 @@ module.exports = {
       id,
       World
     ).catch(
-      Utils.give_up
+      Utils.give_up(Error("Failed to find world object."))
     ).then(function (world) {
       world.origin = origin;
-      return World.save(world).then(function () {
+      return world.save().then(function () {
         return origin;
       });
     });

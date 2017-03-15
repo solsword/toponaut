@@ -11,12 +11,12 @@
  */
 
 module.exports.bootstrap = function(cb) {
-  var world = Object.create(null);
+  var world = {};
   world.name = "Yala";
   World.create(world).then(function (world) {
     return BootstrapService.pull(world);
   }).catch(
-    Utils.give_up
+    Utils.give_up(Error("Failed to pull bootstrap."))
   ).then(
     cb() // continue sails lift
   );

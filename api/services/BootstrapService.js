@@ -6,11 +6,14 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Services
  */
 
+// Need full bluebird promises:
+var Promise = require('bluebird');
+
 module.exports = {
   // A base set of ographies for defining a world.
-  content: {
-    "ographies": {
-      "bootstrap.og.origin": {
+  "content": {
+    "ographies": [
+      {
         "name": "origin",
         "weight": 1,
         "size": 8,
@@ -39,7 +42,7 @@ module.exports = {
           { "x": 2, "y": 2, "name": "forest" }
         ]
       },
-      "bootstrap.og.forest": {
+      {
         "name": "forest",
         "weight": 1,
         "size": 16,
@@ -56,14 +59,14 @@ module.exports = {
         },
         "refs": []
       },
-      "bootstrap.og.forest_patch.-1": {
+      {
         "name": "forest_patch",
         "weight": 0.02,
         "size": 4,
         "default_tile": "d",
         "refs": [ { "x": 0, "y": 0, "name": "forest" } ],
       },
-      "bootstrap.og.forest_patch.0": {
+      {
         "name": "forest_patch",
         "weight": 0.2,
         "size": 4,
@@ -75,7 +78,7 @@ module.exports = {
           { "x": 2, "y": 2, "name": "forest_patch" }
         ],
       },
-      "bootstrap.og.forest_patch.1": {
+      {
         "name": "forest_patch",
         "weight": 1,
         "size": 4,
@@ -84,7 +87,7 @@ module.exports = {
           { "x": 0,  "y": 0, "name": "grove" }
         ],
       },
-      "bootstrap.og.forest_patch.2": {
+      {
         "name": "forest_patch",
         "weight": 0.3,
         "size": 4,
@@ -93,7 +96,7 @@ module.exports = {
           { "x": 0,  "y": 0, "name": "glade" }
         ],
       },
-      "bootstrap.og.forest_patch.3": {
+      {
         "name": "forest_patch",
         "weight": 0.05,
         "size": 4,
@@ -102,7 +105,7 @@ module.exports = {
           { "x": 0,  "y": 0, "name": "pond" }
         ],
       },
-      "bootstrap.og.forest_patch.4": {
+      {
         "name": "forest_patch",
         "weight": 0.05,
         "size": 4,
@@ -111,7 +114,7 @@ module.exports = {
           { "x": 0,  "y": 0, "name": "meadow" }
         ],
       },
-      "bootstrap.og.forest_patch.5": {
+      {
         "name": "forest_patch",
         "weight": 0.01,
         "size": 4,
@@ -120,7 +123,7 @@ module.exports = {
           { "x": 0,  "y": 0, "name": "ruins" }
         ],
       },
-      "bootstrap.og.grove.1": {
+      {
         "name": "grove",
         "weight": 1,
         "split": 10,
@@ -136,7 +139,7 @@ module.exports = {
           }
         },
       },
-      "bootstrap.og.grove.2": {
+      {
         "name": "grove",
         "weight": 0.5,
         "split": 5,
@@ -163,7 +166,7 @@ module.exports = {
           return result;
         },
       },
-      "bootstrap.og.glade.1": {
+      {
         "name": "glade",
         "weight": 1,
         "split": 10,
@@ -179,7 +182,7 @@ module.exports = {
           }
         },
       },
-      "bootstrap.og.pond.1": {
+      {
         "name": "pond",
         "weight": 1,
         "split": 10,
@@ -211,7 +214,7 @@ module.exports = {
           }
         },
       },
-      "bootstrap.og.meadow.1": {
+      {
         "name": "meadow",
         "weight": 1,
         "split": 10,
@@ -227,7 +230,7 @@ module.exports = {
           }
         },
       },
-      "bootstrap.og.ruins.1": {
+      {
         "name": "ruins",
         "weight": 1,
         "split": 10,
@@ -259,7 +262,7 @@ module.exports = {
           }
         },
       },
-      "bootstrap.og.ruins.2": {
+      {
         "name": "ruins",
         "weight": 1,
         "split": 10,
@@ -304,7 +307,7 @@ module.exports = {
           return result;
         },
       },
-      "bootstrap.og.ruins.3": {
+      {
         "name": "ruins",
         "weight": 1,
         "split": 10,
@@ -351,7 +354,7 @@ module.exports = {
           return result;
         },
       },
-      "bootstrap.og.ruins.4": {
+      {
         "name": "ruins",
         "weight": 1,
         "split": 10,
@@ -410,7 +413,7 @@ module.exports = {
           return result;
         },
       },
-      "bootstrap.og.ruins.5": {
+      {
         "name": "ruins",
         "weight": 2,
         "split": 10,
@@ -431,7 +434,7 @@ module.exports = {
           return result;
         },
       },
-      "bootstrap.og.ruins.6": {
+      {
         "name": "ruins",
         "weight": 1,
         "size": 4,
@@ -439,7 +442,7 @@ module.exports = {
         "default_plant": null,
         "refs": [ { "x": 0, "y": 0, "name": "maze" } ]
       },
-      "bootstrap.og.maze.0": {
+      {
         "name": "maze",
         "weight": 1,
         "split": 10,
@@ -475,7 +478,7 @@ module.exports = {
           return result;
         },
       },
-      "bootstrap.og.maze-tile.corner": {
+      {
         "name": "maze-tile",
         "weight": 4, // rotations
         "rotations": [ "n", "e", "s", "w" ],
@@ -487,7 +490,7 @@ module.exports = {
           "W", "f", "f", "W",
         ]
       },
-      "bootstrap.og.maze-tile.straight": {
+      {
         "name": "maze-tile",
         "weight": 2, // rotations
         "rotations": [ "n", "e" ],
@@ -499,7 +502,7 @@ module.exports = {
           "W", "f", "f", "W",
         ]
       },
-      "bootstrap.og.maze-tile.tee": {
+      {
         "name": "maze-tile",
         "weight": 4, // rotations
         "rotations": [ "n", "e", "s", "w" ],
@@ -511,7 +514,7 @@ module.exports = {
           "W", "W", "W", "W",
         ]
       },
-      "bootstrap.og.maze-tile.intersection": {
+      {
         "name": "maze-tile",
         "weight": 1,
         "size": 4,
@@ -522,7 +525,7 @@ module.exports = {
           "W", "f", "f", "W",
         ]
       },
-      "bootstrap.og.demo.ruins": {
+      {
         "name": "demo.ruins",
         "size": 16,
         "tiles": [
@@ -566,35 +569,43 @@ module.exports = {
           { "x": 9, "y": 5, "name": "demo.ruins" }
         ]
       }
-    },
+    ],
   },
+
   // Takes the content above and unfolds each ography basis into the given
   // world. The ography named 'origin' is set as the world's origin.
   pull: function(world_or_id) {
+    var world_p = Utils.or_id(world_or_id);
     return Promise.map(
       BootstrapService.content.ographies,
       function (ography, idx, len) {
-        return BootstrapService.unfold(ography);
+        return Promise.resolve(
+          OgraphyService.unfold(ography)
+        ).catch(Utils.give_up(Error("Failed to unfold ography.")));
       }
+    ).catch(
+      Utils.give_up(Error("Failed to map unfold operation."))
     ).each(function(unfolded) {
       return Promise.map(
         unfolded,
         function (ography, idx, len) {
-          return OgraphyService.add(world, ography)
+          return world_p.then(function (world_id) {
+            return OgraphyService.add(world_id, ography);
+          }).catch(Utils.give_up(Error("Failed to add ography.")));
         }
+      ).catch(
+        Utils.give_up(Error("Failed to add unfolded ographies."))
       ).each(function(added) {
         if (added.name == "origin") {
-          return Utils.or_id(
-            world_or_id
-          ).then(function(world_id) {
+          return world_p.then(function(world_id) {
             return WorldService.set_origin(world_id, added);
           }).catch(
-            Utils.give_up
+            Utils.give_up(Error("Failed to set world origin."))
           );
         } else {
           return added;
         }
-      });
-    }).catch(Utils.give_up);
+      }).catch(Utils.give_up(Error("Failed to set world origin.")));
+    }).catch(Utils.give_up(Error("Failed to process unfolded ographies.")));
   },
 }

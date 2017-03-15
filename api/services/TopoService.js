@@ -10,7 +10,7 @@ module.exports = {
     if (id == "root") {
       return WorldService.get_root(world);
     } else {
-      return Topo.findOne({"id": id});
+      return Utils.lookup(Topo, id);
     }
   },
   add: function (world, topo) {
@@ -33,24 +33,22 @@ module.exports = {
         topo.world = ography.world;
         if (parent) {
           parent.cannonical_children.push(topo);
-          // TODO: or Model.save(topo)?
           return Promise.all([
-            Topo.save(parent),
-            Topo.save(topo),
-            Ography.save(ography),
+            parent.save(),
+            topo.save(),
+            ography.save(),
             topo.populate("world").then(function (topo) {
               topo.world.topos.push(topo);
-              return World.save(topo.world);
+              return topo.world.save();
             }),
           ]);
         } else {
-          // TODO: or Model.save(topo)?
           return Promise.all([
-            Topo.save(topo),
-            Ography.save(ography),
+            topo.save(),
+            ography.save(),
             topo.populate("world").then(function (topo) {
               topo.world.topos.push(topo);
-              return World.save(topo.world);
+              return topo.world.save();
             }),
           ]);
         }
@@ -74,22 +72,24 @@ module.exports = {
               topo.world,
               topo,
               ref
+            ).catch(
+              Utils.give_up(Error("Failed to actualize ref."))
             ).then(function(ref) {
               // recurse
               return TopoService.propagate(
                 ref.topo,
                 depth - 1
               ).catch(
-                Utils.give_up
+                Utils.give_up(Error("Failed to propagate recursively."))
               ).then(function(result) {
-                ref.topo = result;
+                ref.topo = result; // TODO: Not this?
                 // replace ref w/ actualized ref
                 topo.refs[idx] = ref;
               });
-            }).catch(Utils.give_up);
+            }).catch(Utils.give_up(Error("Failed to store recursion result.")));
           }
-        ).catch(Utils.give_up);
-      }).catch(Utils.give_up);
+        ).catch(Utils.give_up(Error("Failed to propagate all refs.")));
+      }).catch(Utils.give_up(Error("Failed to propagate.")));
     }
   },
 };
