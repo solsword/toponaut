@@ -11,13 +11,15 @@
  */
 
 module.exports.bootstrap = function(cb) {
+  console.log("\x1b[32minfo:\x1b[37m\x1b[2m Pulling bootstrap...\x1b[0m");
   var world = {};
   world.name = "Yala";
   World.create(world).then(function (world) {
     return BootstrapService.pull(world);
   }).catch(
     Utils.give_up(Error("Failed to pull bootstrap."))
-  ).then(
-    cb() // continue sails lift
-  );
+  ).then(function () {
+    console.log("\x1b[32minfo:\x1b[37m\x1b[2m ...bootstrap pulled.\x1b[0m");
+    cb(); // continue sails lift
+  });
 };
