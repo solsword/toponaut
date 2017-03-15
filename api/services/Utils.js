@@ -10,6 +10,17 @@ var Promise = require('bluebird');
 
 var orientations = "nesw";
 module.exports = {
+  // log helpers
+  "log_info": function (info) {
+    console.log("\x1b[32minfo:\x1b[37m\x1b[2m " + info + "\x1b[0m");
+  },
+  "log_error": function (error) {
+    console.error("\x1b[31m");
+    console.error(error);
+    console.error("\x1b[0m");
+    console.error("...");
+  },
+
   // data & helpers for rotation
   "orientations" : orientations,
   get_rotation: function (frori, toori) {
@@ -166,10 +177,7 @@ module.exports = {
   // Standard give-up function for catching broken promises
   give_up: function(anchor) {
     return function(error) {
-      console.error("\x1b[31m");
-      console.error(anchor);
-      console.error("\x1b[0m");
-      console.error("...");
+      Utils.log_error(anchor);
       throw error;
     }
   },

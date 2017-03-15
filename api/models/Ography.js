@@ -29,6 +29,11 @@ module.exports = {
       type: "string",
       required: true,
     },
+    weight: {
+      type: "float",
+      required: true,
+      defaultsTo: 1.0,
+    },
     size: {
       type: "integer",
       enum: [4, 8, 16, 32],

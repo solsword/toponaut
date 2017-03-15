@@ -184,7 +184,7 @@ module.exports = {
           result.plants = rplants;
 
           for (k in result.gens) { // edit in-place (they're fresh)
-            gen = result.gens[k];
+            var gen = result.gens[k];
             var nc = tt.tf(gen.x, gen.y);
             gen.x = nc.x;
             gen.y = nc.y;
@@ -192,7 +192,7 @@ module.exports = {
           }
 
           for (k in result.refs) { // edit in-place (they're fresh)
-            ref = result.refs[k];
+            var ref = result.refs[k];
             var nc = tt.tf(ref.x, ref.y);
             ref.x = nc.x;
             ref.y = nc.y;

@@ -29,6 +29,9 @@ config([
     '$q', // promises
     function($http, $q) {
       return {
+        'bind': function() {
+          // TODO: How to choose a world?
+        },
         'root': function() {
           var defer = $q.defer()
           $http.get('/topo/root').success(

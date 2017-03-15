@@ -12,6 +12,7 @@ var Promise = require('bluebird');
 module.exports = {
   // A base set of ographies for defining a world.
   "content": {
+    "default_world_name": "Yala",
     "ographies": [
       {
         "name": "origin",
@@ -49,7 +50,7 @@ module.exports = {
         "default_tile": "d",
         "gens": function() {
           // 16 forest patches each of which is 4x4
-          result = [];
+          var result = [];
           for (var x = 0; x < 16; x += 4) {
             for (var y = 0; y < 16; y += 4) {
               result.push({ "x": x, "y": y, "name": "forest_patch" });
@@ -155,7 +156,7 @@ module.exports = {
           }
         },
         "refs": function () {
-          result = [];
+          var result = [];
           for (var x = 0; x < 4; x += 1) {
             for (var y = 0; y < 4; y += 1) {
               if (Math.random() < 0.3) {
@@ -294,7 +295,7 @@ module.exports = {
           }
         },
         "refs": function () {
-          result = [];
+          var result = [];
           for (var x = 0; x < 4; x += 1) {
             for (var y = 0; y < 4; y += 1) {
               if (Math.random() < 0.1) {
@@ -341,7 +342,7 @@ module.exports = {
           }
         },
         "refs": function () {
-          result = [];
+          var result = [];
           for (var x = 0; x < 4; x += 1) {
             for (var y = 0; y < 4; y += 1) {
               if (Math.random() < 0.15) {
@@ -400,7 +401,7 @@ module.exports = {
           }
         },
         "refs": function () {
-          result = [];
+          var result = [];
           for (var x = 0; x < 4; x += 1) {
             for (var y = 0; y < 4; y += 1) {
               if (Math.random() < 0.2) {
@@ -421,7 +422,7 @@ module.exports = {
         "default_tile": "f",
         "default_plant": null,
         "refs": function () {
-          result = [];
+          var result = [];
           for (var x = 0; x < 4; x += 1) {
             for (var y = 0; y < 4; y += 1) {
               if (Math.random() < 0.8) {
@@ -449,8 +450,8 @@ module.exports = {
         "size": 16,
         "default_tile": "f",
         "refs": function () {
-          result = [];
-          exclude = {};
+          var result = [];
+          var exclude = {};
           if (Math.random() < 0.4) {
             // include a recursive maze reference
             var ax = Math.floor(Math.random() * 12);
@@ -527,6 +528,7 @@ module.exports = {
       },
       {
         "name": "demo.ruins",
+        "weight": 1,
         "size": 16,
         "tiles": [
           "f","f","f","W","W","W","f","f","c","c","c","c","d","d","d","d",
@@ -581,7 +583,22 @@ module.exports = {
       function (ography, idx, len) {
         return Promise.resolve(
           OgraphyService.unfold(ography)
-        ).catch(Utils.give_up(Error("Failed to unfold ography.")));
+        ).catch(
+          Utils.give_up(Error("Failed to unfold ography."))
+        ).then(function (unfolded) {
+          if (unfolded.length == 1) {
+            Utils.log_info(
+              "...unfolded '" + ography.name + "' rule into " +
+              unfolded.length + " ography..."
+            );
+          } else {
+            Utils.log_info(
+              "...unfolded '" + ography.name + "' rule into " +
+              unfolded.length + " ographies..."
+            );
+          }
+          return unfolded;
+        });
       }
     ).catch(
       Utils.give_up(Error("Failed to map unfold operation."))
@@ -605,7 +622,24 @@ module.exports = {
         } else {
           return added;
         }
-      }).catch(Utils.give_up(Error("Failed to set world origin.")));
+      }).catch(
+        Utils.give_up(Error("Failed to set world origin."))
+      ).then(function (batch) {
+        if (batch.length == 1) {
+          Utils.log_info(
+            "...added " + batch.length + " '" + batch[0].name + "' rule..."
+          );
+        } else if (batch.length > 1) {
+          Utils.log_info(
+            "...added " + batch.length + " '" + batch[0].name + "' rules..."
+          );
+        } else {
+          Utils.log_info(
+            "...added " + batch.length + " rules..."
+          );
+        }
+        return batch;
+      });
     }).catch(Utils.give_up(Error("Failed to process unfolded ographies.")));
   },
 }
