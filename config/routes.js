@@ -46,10 +46,17 @@ module.exports.routes = {
   *                                                                          *
   ***************************************************************************/
 
-  'get /topo/root': 'TopoController.demo',
+  // Returns the ID of the default world:
+  'get /world/default': 'WorldController.get_default_world',
+
+  // TODO: DEBUG:
+  //'get /topo/root': 'TopoController.demo',
+
+  // Returns a specific topo (requested by world ID and ID):
   'get /world/:world/topo/get/:id': 'TopoController.get',
-  'post /world/:world/topo/add': 'TopoController.add',
-  'get /world/:world/ology/get/:id': 'OgraphyController.get',
-  'post /world/:world/ology/add': 'OgraphyController.add',
+
+  //'post /world/:world/topo/add': 'TopoController.add',
+  //'get /world/:world/ology/get/:id': 'OgraphyController.get',
+  //'post /world/:world/ology/add': 'OgraphyController.add',
 
 };

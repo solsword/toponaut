@@ -29,12 +29,12 @@ config([
     '$q', // promises
     function($http, $q) {
       return {
-        'bind': function() {
-          // TODO: How to choose a world?
-        },
-        'root': function() {
+
+        // Returns a world ID.
+        'join': function() {
+          // TODO: How to choose a specific world?
           var defer = $q.defer()
-          $http.get('/topo/root').success(
+          $http.get('/world/default').success(
             function (resp) {
               defer.resolve(resp);
             }
@@ -45,9 +45,12 @@ config([
           );
           return defer.promise;
         },
-        'get': function() {
+
+        // Returns the id of the root topo of the given world.
+        // TODO: Dear god cache this!
+        'root': function(world_id) {
           var defer = $q.defer()
-          $http.get('/topo/get').success(
+          $http.get('/world/' + world_id + '/topo/root').success(
             function (resp) {
               defer.resolve(resp);
             }
@@ -58,9 +61,27 @@ config([
           );
           return defer.promise;
         },
-        'add': function(topo) {
+
+        // Returns a specific topo from the given world.
+        // TODO: Dear god cache this!
+        'get': function(world_id, topo_id) {
           var defer = $q.defer()
-          $http.post('/topo/add', topo).success(
+          $http.get('/world/' + world_id + '/topo/get/' + topo_id).success(
+            function (resp) {
+              defer.resolve(resp);
+            }
+          ).error(
+            function (err) {
+              defer.reject(err);
+            }
+          );
+          return defer.promise;
+        },
+
+        // TODO: Real editing API later...
+        'add': function(world_id, topo) {
+          var defer = $q.defer()
+          $http.post('/world/' + world_id + '/topo/add', topo).success(
             function (resp) {
               defer.resolve(resp);
             }

@@ -3,11 +3,13 @@
 angular.module('toponaut.pane', [])
 .factory('Pane', [
     "$http",
+    "TopoService",
     "ORIENTATION",
     "TILESET",
-    function($http, ORIENTATION, TILESET) {
+    function($http, TopoService, ORIENTATION, TILESET) {
       var Pane = function (topo) {
         this.id = 0;
+        this.world = topo.world;
         this.topo = topo;
         this.orientation = ORIENTATION.default;
       }
@@ -32,7 +34,9 @@ angular.module('toponaut.pane', [])
             for (var i in this.topo.refs) {
               // TODO: UNHACK THIS using ref.id
               var ref = this.topo.refs[i];
-              var child = this;
+              // TODO: WHY THIS?!? NO!
+              var child = new Pane(TopoService.get(this.world, ref.id));
+              // TODO: ref orientation.
               child.draw(
                 canvas,
                 conf,

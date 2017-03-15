@@ -6,6 +6,34 @@
  */
 
 module.exports = {
+  default: null,
+
+  // Gets the default world. If none was set, sets one arbitrarily (according
+  // to database ordering). Returns a promise.
+  get_default: function() {
+    if (World.default) {
+      return Promise.resolve(World.default);
+    } else {
+      return World.findOne().then(function (world) {
+        if (world == undefined) {
+          throw "ugh";
+        }
+        World.default = world.id;
+        return world.default;
+      }).catch(Utils.give_up(Error("No worlds exist.")));
+    }
+  },
+
+  // Sets the default world. Can handle records, IDs, and promises; returns a
+  // promise, with value based on the argument (doesn't convert to ID for
+  // output although the default world is stored as an ID).
+  set_default: function(world) {
+    return Utils.or_id(world).then(function (world_id) {
+      World.default = world_id;
+      return world;
+    }).catch(Utils.give_up(Error("Failed to set default world.")));
+  },
+
   // If there isn't yet a concrete root, instantiates a new topo based on the
   // origin. Returns a promise.
   get_root: function(id) {

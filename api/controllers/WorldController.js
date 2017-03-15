@@ -11,5 +11,12 @@ module.exports = {
       res.json(topo);
     });
   },
+  get_default_world: function(req, res) {
+    WorldService.get_default().then(
+      function (world_id) {
+        res.send(world_id);
+      }
+    );
+  },
 };
 

@@ -18,8 +18,12 @@ module.exports.bootstrap = function(cb) {
     return BootstrapService.pull(world);
   }).catch(
     Utils.give_up(Error("Failed to pull bootstrap."))
-  ).then(function () {
-    Utils.log_info("...bootstrap pulled.");
+  ).then(function (world) {
+    return WorldService.set_default(world);
+  }).then(function (world) {
+    Utils.log_info(
+      "...bootstrap pulled. Created default world '" + world.name + "'."
+    );
     cb(); // continue sails lift
   });
 };
