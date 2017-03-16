@@ -23,7 +23,7 @@ angular.module('toponaut.edit', ['ngRoute'])
 
 .constant('CONFIG', {
   canvas_size: 1000, // TODO: propagate or extract
-  tile_border: 0.08,
+  texture_scale: 32, // dimension in pixels of a single tile
 })
 
 .controller('EditCtrl', [
