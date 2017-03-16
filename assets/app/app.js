@@ -32,22 +32,18 @@ config([
         '_cache': Object.create(null),
 
         // Caching functions.
-        // Caches the given topo by its ID within the cache for the given
-        // world. Any extra arguments are set as extra cache keys. Take care
-        // these aren't overwriting other keys.
-        'cache': function(world_id, topo) {
+        // Caches the given topo promise by the given ID within the cache for
+        // the given world.
+        'cache': function(world_id, topo_id, topo_p) {
           var wc = null;
-          if (!(world_id in this._cache)) {
+          if (world_id in this._cache) {
             wc = this._cache[world_id];
           } else {
             wc = Object.create(null);
             this._cache[world_id] = wc;
           }
-          wc[topo.id] = topo;
-          for (var exarg of Array.prototype.slice.call(arguments, 2)) {
-            wc[exarg] = topo;
-          }
-          return topo;
+          wc[topo_id] = topo_p;
+          return topo_p;
         },
 
         // Attempts to fetch the given topo (of the given world) from the
@@ -86,28 +82,7 @@ config([
 
         // Returns the id of the root topo of the given world.
         'root': function(world_id) {
-          var cached = this.fetch(world_id, "root");
-          if (cached != null) {
-            console.log("cache hit " + world_id + "/root");
-            return $q.resolve(cached);
-          } else {
-            console.log("cache miss " + world_id + "/root");
-            var defer = $q.defer()
-            console.log("root::world_id: ", world_id);
-            $http.get('/world/' + world_id + '/topo/get/root').success(
-              function (resp) {
-                defer.resolve(resp);
-              }
-            ).error(
-              function (err) {
-                defer.reject(err);
-              }
-            );
-            var myservice = this;
-            return defer.promise.then(function (resp) {
-              return myservice.cache(world_id, resp, "root");
-            });
-          }
+          return this.get(world_id, "root");
         },
 
         // Returns a specific topo from the given world.
@@ -116,10 +91,11 @@ config([
           var cached = this.fetch(world_id, topo_id);
           if (cached != null) {
             console.log("cache hit " + world_id + "/" + topo_id);
-            return $q.resolve(cached);
+            return cached;
           } else {
             console.log("cache miss " + world_id + "/" + topo_id);
             var defer = $q.defer()
+            this.cache(world_id, topo_id, defer.promise);
             console.log("world_id: ", world_id);
             $http.get('/world/' + world_id + '/topo/get/' + topo_id).success(
               function (resp) {
@@ -130,13 +106,7 @@ config([
                 defer.reject(err);
               }
             );
-            var myservice = this;
-            return defer.promise.then(function (resp) {
-              if (resp.id != topo_id) {
-                console.log("ID MISMATCH! " + resp.id + " ! " + topo_id);
-              }
-              return myservice.cache(world_id, resp)
-            });
+            return defer.promise;
           }
         },
 

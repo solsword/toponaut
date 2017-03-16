@@ -19,7 +19,7 @@ module.exports = {
       req.param("world"),
       req.param("id")
     ).then(function (topo) {
-      return TopoService.propagate(topo, 1);
+      return TopoService.prepare(topo);
     }).then(function (topo) {
       sails.log.info(
         chalk.gray("Response: " + Utils.repr(topo.toJSON()))

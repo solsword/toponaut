@@ -113,4 +113,23 @@ module.exports = {
       }).catch(Utils.give_up(Error("Failed to propagate.")));
     }
   },
+
+  // Takes a topo and ensures that all of its refs have ids, propagating with
+  // depth=1 only if necessary.
+  prepare: function (topo_or_p) {
+    return Promise.resolve(topo_or_p).then(function (topo) {
+      var all_present = true;
+      for (var ref of topo.refs) {
+        if (!ref.hasOwnProperty("id")) {
+          all_present = false;
+          break;
+        }
+      }
+      if (all_present) {
+        return topo;
+      } else {
+        return TopoService.propagate(topo, 1);
+      }
+    }).catch(Utils.give_up(Error("Failed to propagate.")));
+  }
 };

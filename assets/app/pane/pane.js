@@ -34,16 +34,18 @@ angular.module('toponaut.pane', [])
             }
           }
           if (levels > 0) {
-            var result = $q.resolve(undefined);
+            var result = $q.resolve(this);
             for (var ref of this.topo.refs) {
-              var thispane = this;
-              result = result.then(function () {
+              result = result.then(function (this) {
                 return TopoService.get(
-                  thispane.world,
+                  this.world,
                   ref.id
                 ).then(function (topo) {
-                  // TODO: WHY THIS?!? NO!
-                  var child = new Pane(topo);
+                  var child = ref.pane;
+                  if (!child) {
+                    // Construct new panes as needed, attaching them to the ref
+                    ref.pane = new Pane(topo);
+                  }
                   // TODO: ref orientation.
                   return child.draw(
                     canvas,
