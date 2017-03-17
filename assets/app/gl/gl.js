@@ -2,134 +2,165 @@
 
 angular.module('toponaut.gl', [])
 
-.directive("TopoGL", [
-  "$interval",
-  function ($interval) {
+.directive("topoGl",
+  function () {
     return {
-      restrict: "E",
+      restrict: "A",
       replace: false,
-      scope: {
-        "width": '=', // bind to same property of bound element (2-way)
-        "height": '=',
-      },
-      link: function($scope, elem, attrs, ctrl) {
-        $scope.elem = elem[0];
+      link: function($scope, elem, attrs) {
+        $scope.gl = {};
+        $scope.gl.elem = elem[0];
 
         // Setup function:
         // ---------------
-        $scope.init = function () {
+        $scope.gl.init = function (pane) {
+          $scope.gl.pane = pane;
+
+          // Renderer
+          $scope.gl.renderer = new THREE.WebGLRenderer()
+          $scope.gl.renderer.autoClear = true;
+
           // Camera
-          $scope.camera = new THREE.OrthographicCamera(
+          $scope.gl.camera = new THREE.OrthographicCamera(
             -100, 100, // left/right
             -100, 100, // top/bottom
             0, 200  // near/far (wind up at -100 and 100)
           );
-          $scope.camera.position.set(0, 0, -100);
-          $scope.camera.up.set(0, -1, 0); // -y is upwards
-          $scope.camera.lookAt(new THREE.Vector3(0, 0, 0));
+          $scope.gl.camera.position.set(0, 0, -100);
+          $scope.gl.camera.up.set(0, -1, 0); // -y is upwards
+          $scope.gl.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
           // Scene
-          $scope.scene = new THREE.Scene();
+          $scope.gl.scene = new THREE.Scene();
 
           // Lighting
-          $scope.light = new THREE.AmbientLight(0xffffff);
-          $scope.scene.add($scope.light);
+          $scope.gl.light = new THREE.AmbientLight(0xffffff);
+          $scope.gl.scene.add($scope.gl.light);
 
           // Material:
-          $scope.material = new THREE.MeshBasicMaterial(
+          $scope.gl.material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             shading: THREE.FlatShading,
-          );
+          });
+
+          // Drawing plane:
+          $scope.gl.geom = new THREE.PlaneBufferGeometry(200, 200);
+          $scope.gl.mesh = new THREE.Mesh($scope.gl.geom, $scope.gl.material);
+          $scope.gl.mesh.position.set(0, 0, 0);
+          $scope.gl.scene.add($scope.gl.mesh);
 
           // Set up event listeners:
-          $scope.elem.addEventListener("mousemove", $scope.onMouseMove);
-          window.addEventListener("resize", $scope.onWindowResize);
+          $scope.gl.elem.addEventListener("mousemove", $scope.gl.onMouseMove);
+          window.addEventListener("resize", $scope.gl.onWindowResize);
+
+          // Add renderer DOM element to page:
+          $scope.gl.elem.appendChild($scope.gl.renderer.domElement);
         };
 
         // Helpers:
         // --------
         // Maps within-element pixel coordinates into in-world coordinates.
-        $scope.mapMouse = function (mx, my) {
-          var mxp = mx / ($scope.viewShort / 2); // [-1,1] while on drawn region
-          var myp = my / ($scope.viewShort / 2); // same
-          var worldHalfX = ($scope.camera.right - $scope.camera.left) / 2;
-          var worldHalfY = ($scope.camera.bottom - $scope.camera.top) / 2;
+        $scope.gl.mapMouse = function (mx, my) {
+          var mxp = mx / ($scope.gl.viewShort / 2); // [-1,1] while in-view
+          var myp = my / ($scope.gl.viewShort / 2); // same
+          var worldHalfX = ($scope.gl.camera.right - $scope.gl.camera.left) / 2;
+          var worldHalfY = ($scope.gl.camera.bottom - $scope.gl.camera.top) / 2;
           return {
-            x: mxp * worldHalfX;
-            y: myp * worldHalfY;
+            x: mxp * worldHalfX,
+            y: myp * worldHalfY,
           };
         }
 
-        // Listeners:
-        // ----------
-        $scope.onWindowResize = function () {
-          $scope.resizeViewport();
-        };
-
-        $scope.onMouseMove = function (event) {
-          // element x/y
-          $scope.mouseEX = (event.offsetX - $scope.viewHalfX);
-          $scope.mouseEY = (event.offsetY - $scope.viewHalfY);
-          // world x/y
-          var m = $scope.mapMouse($scope.mouseEX, $scope.mouseEY);
-          $scope.mouseWX = m.x;
-          $scope.mouseWY = m.y;
+        $scope.gl.set_pane = function (pane) {
+          // TODO: Any updates needed here?
+          $scope.gl.pane = pane;
         }
 
         // Maintenance:
         // ------------
-        $scope.resizeViewport = function () {
-          $scope.viewWidth = $scope.elem.clientWidth;
-          $scope.viewHeight = $scope.elem.clientHeight;
-          $scope.viewShort = viewWidth < viewHeight ? viewWidth : viewHeight;
+        $scope.gl.resizeViewport = function () {
+          $scope.gl.viewWidth = $scope.gl.elem.clientWidth;
+          $scope.gl.viewHeight = $scope.gl.elem.clientHeight;
+          if ($scope.gl.viewWidth < $scope.gl.viewHeight) {
+            $scope.gl.viewShort = $scope.gl.viewWidth;
+            // TODO: Do we need this?
+            $scope.gl.viewLong = $scope.gl.viewHeight;
+          } else {
+            $scope.gl.viewShort = $scope.gl.viewHeight;
+            $scope.gl.viewLong = $scope.gl.viewWidth;
+          }
 
-          // TODO: Do we need this?
-          var vlong =  viewWidth > viewHeight ? viewWidth : viewHeight;
-
-          $scope.viewHalfX = viewWidth / 2;
-          $scope.viewHalfY = viewHeight / 2;
-          $scope.viewAspect = viewWidth / viewHeight;
+          $scope.gl.viewHalfX = $scope.gl.viewWidth / 2;
+          $scope.gl.viewHalfY = $scope.gl.viewHeight / 2;
+          $scope.gl.viewAspect = $scope.gl.viewWidth / $scope.gl.viewHeight;
 
           /*
            * TODO: THIS?
-          $scope.camera.left = $scope.viewShort / -2;
-          $scope.camera.right = $scope.viewShort / 2;
-          $scope.camera.top = $scope.viewShort / -2;
-          $scope.camera.bottom = $scope.viewShort / 2;
-          $scope.camera.updateProjectionMatrix();
+          $scope.gl.camera.left = $scope.gl.viewShort / -2;
+          $scope.gl.camera.right = $scope.gl.viewShort / 2;
+          $scope.gl.camera.top = $scope.gl.viewShort / -2;
+          $scope.gl.camera.bottom = $scope.gl.viewShort / 2;
+          $scope.gl.camera.updateProjectionMatrix();
           */
 
-          $scope.renderer.setSize($scope.viewShort, $scope.viewShort);
+          if ($scope.gl.renderer) {
+            $scope.gl.renderer.setSize(
+              $scope.gl.viewShort,
+              $scope.gl.viewShort
+            );
+          }
         };
 
         // Animate and render functions:
         // -----------------------------
-        $scope.animate = function () {
+        $scope.gl.animate = function () {
           // render first, so if it takes a while we don't queue up too many
-          $scope.render();
+          $scope.gl.render();
 
           // chain callback for next frame
-          window.requestAnimationFrame( $scope.animate );
+          window.requestAnimationFrame( $scope.gl.animate );
         };
 
-        $scope.render = function() {
-          // per-frame camera stuff?
-          $scope.renderer.render($scope.scene, $scope.camera);
+        $scope.gl.render = function() {
+          // TODO: per-frame camera stuff
+          if ($scope.gl.pane) {
+            $scope.gl.pane.impart_texture($scope.gl.material, 2);
+          }
+          $scope.gl.renderer.render($scope.gl.scene, $scope.gl.camera);
         };
+
+        // Listeners:
+        // ----------
+        $scope.gl.onWindowResize = function () {
+          $scope.gl.resizeViewport();
+        };
+
+        $scope.gl.onMouseMove = function (event) {
+          // element x/y
+          $scope.gl.mouseEX = (event.offsetX - $scope.gl.viewHalfX);
+          $scope.gl.mouseEY = (event.offsetY - $scope.gl.viewHalfY);
+          // world x/y
+          var m = $scope.gl.mapMouse($scope.gl.mouseEX, $scope.gl.mouseEY);
+          $scope.gl.mouseWX = m.x;
+          $scope.gl.mouseWY = m.y;
+        }
 
         // Watchers:
         // ---------
         $scope.$watch("width + height", function () {
-          $scope.resizeViewport();
+          $scope.gl.resizeViewport();
         });
 
-        // Get stuff going:
-        // ----------------
-        $scope.init(); // setup
-        $scope.animate(); // set off callback chain
+        // Provide start tool to controller:
+        // ---------------------------------
+        $scope.gl_ready(function (pane) {
+          $scope.gl.init(pane); // setup
+          $scope.gl.animate(); // set off callback chain
+          return $scope; // give back our scope
+        });
       },
     };
-  }]
+  }
 )
 
 .service("TextureRenderer", [
@@ -186,8 +217,10 @@ angular.module('toponaut.gl', [])
           );
           renderer.render(scene, camera, target);
           return target;
-        }
+        }).catch(function (err) {
+          throw new Error("Failed to render texture.");
+        });
       },
     };
-  }
+  }]
 )

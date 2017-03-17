@@ -5,21 +5,8 @@ angular.module('toponaut.edit', ['ngRoute'])
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/edit', {
     templateUrl: 'app/edit/edit.html',
-    controller: 'EditCtrl'
   });
 }])
-
-.directive("canvasHere",
-  function () {
-    return {
-      restrict: "A",
-      replace: false,
-      link: function($scope, elem) {
-        $scope.canvas = elem[0];
-      }
-    };
-  }
-)
 
 .constant('CONFIG', {
   canvas_size: 1000, // TODO: propagate or extract
@@ -34,30 +21,9 @@ angular.module('toponaut.edit', ['ngRoute'])
   'ORIENTATION',
   'CONFIG',
   function ($scope, $interval, TopoService, Pane, ORIENTATION, CONFIG) {
-
-    // Scope methods:
-    // --------------
-
-    // Draw function just calls draw() on the root pane. Returns a promise.
-    $scope.draw = function () {
-      if ($scope.root_pane != null) {
-        if ($scope.canvas) {
-          // TODO: Why do we need this if statement?
-          return $scope.root_pane.draw(
-            $scope.canvas, // what to draw on
-            CONFIG, // our drawing configuration
-            0, 0, // x and y offsets
-            1, // scale
-            2 // levels to draw
-          );
-        }
-      }
-      // TODO: Get rid of this! (or at least log here?)
-      return Promise.resolve(null);
-    }
-
     // Setup:
     // ------
+    console.log("Controller setup");
 
     // Bind a world when this controller starts:
     TopoService.join().then(function (world_id) {
@@ -68,27 +34,19 @@ angular.module('toponaut.edit', ['ngRoute'])
 
       return TopoService.root(world_id).then(function (root) {
         $scope.root_pane = new Pane(root, ORIENTATION.default);
+        // TODO: register non-root panes?
         $scope.all_panes = Object.create(null);
         $scope.all_panes[$scope.root_pane.id] = $scope.root_pane;
       }).catch(function (err) {
-        // TODO: better here!
-        throw err;
+        throw new Error("Failed to set up root pane.");
       });
     });
 
-    // Draw immediately:
-    $scope.draw();
-
-    // Set up a regular draw callback:
-    $interval(
-      // TODO: Use promises + timeouts and be clever!
-      function () {
-        $scope.draw().catch(function (err) { throw err; });
-      },
-      //1000/30.0, // 30 FPS
-      2000,
-      // TODO: This parameter!
-      false // (need to call $digest to trigger callback from draw function)
-    );
+    // Scope methods:
+    // --------------
+    // Callback for the TopoGL directive to get things started:
+    $scope.gl_ready = function(get_started) {
+      get_started($scope.root_pane);
+    }
   }
 ]);

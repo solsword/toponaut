@@ -18,8 +18,8 @@ angular.module('toponaut.tileset', [])
     'c': [0x000000, 0x222222],
     'w': [0x003388, 0x2255bb],
   },
-  tile_border = 0.08,
-)
+  tile_border: 0.08,
+})
 .service('Tileset',
   function() {
     return {
@@ -29,21 +29,21 @@ angular.module('toponaut.tileset', [])
         tileset.materials = {};
         for (var tile in tileset.colors) {
           tileset.materials[tile] = [
-            new THREE.MeshBasicMaterial(
+            new THREE.MeshBasicMaterial({
               color: tileset.colors[tile][0],
               shading: THREE.FlatShading,
-            ),
-            new THREE.MeshBasicMaterial(
+            }),
+            new THREE.MeshBasicMaterial({
               color: tileset.colors[tile][1],
               shading: THREE.FlatShading,
-            ),
+            }),
           ];
         }
       },
       // Checks whether a tileset has been initialized or not.
       is_initialized: function(tileset) {
         return (tileset.hasOwnProperty(initialized) && tileset.initialized);
-      }
+      },
       // Takes a scene and a tileset and returns a drawing function that can
       // add tile objects to the given scene based on the tileset's tile
       // definitions. The caller is responsible for appropriate model view
@@ -80,7 +80,7 @@ angular.module('toponaut.tileset', [])
           parent.add(outer);
           parent.add(inner);
         };
-      }
+      },
     };
   }
-})
+)

@@ -53,7 +53,7 @@ a:link:hover {
   height: inherit;
 }
 
-.main-canvas {
+.main-viewport {
   background: #aaa;
   border: #999;
 }

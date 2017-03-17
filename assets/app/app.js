@@ -96,7 +96,6 @@ config([
             console.log("cache miss " + world_id + "/" + topo_id);
             var defer = $q.defer()
             this.cache(world_id, topo_id, defer.promise);
-            console.log("world_id: ", world_id);
             $http.get('/world/' + world_id + '/topo/get/' + topo_id).success(
               function (resp) {
                 defer.resolve(resp);
