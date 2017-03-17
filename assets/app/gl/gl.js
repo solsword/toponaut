@@ -124,7 +124,10 @@ angular.module('toponaut.gl', [])
         $scope.gl.render = function() {
           // TODO: per-frame camera stuff
           if ($scope.gl.pane) {
-            $scope.gl.pane.impart_texture($scope.gl.material, 2);
+            $scope.gl.pane.update_material($scope.gl.mesh, 2);
+          } else {
+            // TODO: display loading info here...
+            console.log("no pane", $scope.gl.pane);
           }
           $scope.gl.renderer.render($scope.gl.scene, $scope.gl.camera);
         };
@@ -181,10 +184,11 @@ angular.module('toponaut.gl', [])
       c.position.set(0, 0, -50);
       c.up.set(0, -1, 0); // -y is up
       c.lookAt(new THREE.Vector3(0, 0, 0))
-      renderers[size] = c;
+      renderers[size] = r;
       cameras[size] = c;
     }
-    return {
+    var thisService;
+    thisService = {
       scale: scale,
       renderers: renderers,
       cameras: cameras,
@@ -195,7 +199,7 @@ angular.module('toponaut.gl', [])
       // of 4, 8, 16, or 32; use topo.size) and returns a promise of a texture
       // for the given scene. See Pane and Tileset for scene-building.
       render: function (scene, size) {
-        if (!TextureRenderer.valid_size(size)) {
+        if (!thisService.valid_size(size)) {
           return $q.reject(
             Error(
               "Invalid render size " + size + ". Must be in [4, 8, 16, 13]."
@@ -203,24 +207,25 @@ angular.module('toponaut.gl', [])
           );
         }
         return $q.resolve(null).then(function () {
-          var renderer = TextureRenderer.renderers[size]
-          var camera = TextureRenderer.cameras[size];
+          var renderer = thisService.renderers[size]
+          var camera = thisService.cameras[size];
           var target = new THREE.WebGLRenderTarget(
             size * scale, size * scale, // width, height
             {
               minFilter: THREE.NearestFilter,
-              magFilter: THREE.NearestMipMapNearestFilter,
+              magFilter: THREE.NearestFilter,
                 // TODO: Use just NearestFilter here as well?
               depthBuffer: false,
               stencilBuffer: false
             }
           );
           renderer.render(scene, camera, target);
-          return target;
+          return target.texture;
         }).catch(function (err) {
           throw new Error("Failed to render texture.");
         });
       },
     };
+    return thisService;
   }]
 )

@@ -37,7 +37,9 @@ angular.module('toponaut.edit', ['ngRoute'])
         // TODO: register non-root panes?
         $scope.all_panes = Object.create(null);
         $scope.all_panes[$scope.root_pane.id] = $scope.root_pane;
+        $scope.gl.set_pane($scope.root_pane);
       }).catch(function (err) {
+        console.error(err);
         throw new Error("Failed to set up root pane.");
       });
     });

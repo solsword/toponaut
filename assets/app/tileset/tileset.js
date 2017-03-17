@@ -22,7 +22,8 @@ angular.module('toponaut.tileset', [])
 })
 .service('Tileset',
   function() {
-    return {
+    var thisService;
+    thisService = {
       // Sets up meshes for a tileset based on raw colors
       init: function(tileset) {
         tileset.initialized = true;
@@ -42,7 +43,7 @@ angular.module('toponaut.tileset', [])
       },
       // Checks whether a tileset has been initialized or not.
       is_initialized: function(tileset) {
-        return (tileset.hasOwnProperty(initialized) && tileset.initialized);
+        return (tileset.hasOwnProperty("initialized") && tileset.initialized);
       },
       // Takes a scene and a tileset and returns a drawing function that can
       // add tile objects to the given scene based on the tileset's tile
@@ -50,8 +51,8 @@ angular.module('toponaut.tileset', [])
       // matrix setup; tiles are produced with dimensions of 1x1.
       bind: function(parent, tileset) {
         // Ensure initialization:
-        if (!Tileset.is_initialized(tileset)) {
-          Tileset.init(tileset);
+        if (!thisService.is_initialized(tileset)) {
+          thisService.init(tileset);
         }
         // Construct & return a drawing function that creates tiles. The
         // drawing function adds a pair of new plane objects to the given
@@ -60,7 +61,7 @@ angular.module('toponaut.tileset', [])
         // scale. The z-coordinate of the outer plane is 0, while the
         // z-coordinate of the inner plane is -0.5.
         return function (tile, x, y, scale) {
-          var colors = null;
+          var materials = null;
           if (tile in tileset.materials) {
             materials = tileset.materials[tile];
           } else {
@@ -82,5 +83,6 @@ angular.module('toponaut.tileset', [])
         };
       },
     };
+    return thisService;
   }
 )

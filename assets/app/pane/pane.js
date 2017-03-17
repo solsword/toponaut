@@ -157,9 +157,14 @@ angular.module('toponaut.pane', ['toponaut.gl'])
             }
             // TODO: Fix this race condition?
             for (var i = 0; i < levels; ++i) {
-              if (this.textures[i] != this.textures[levels]) {
-                // TODO: Does this work?
-                this.textures[i].then(function (tx) { tx.dispose(); });
+              if (
+                this.textures[levels]
+             && this.textures[i] != this.textures[levels]
+              ) {
+                if (this.textures[i]) {
+                  // TODO: Does this work?
+                  this.textures[i].then(function (tx) { tx.dispose(); });
+                }
                 this.textures[i] = this.textures[levels];
               }
             }
@@ -169,17 +174,25 @@ angular.module('toponaut.pane', ['toponaut.gl'])
         return this.textures[levels]; // return a promise
       },
 
-      // Sets the texture for the given material to be the best-currently-
-      // available texture for this object, and starts the process of ensuring
-      // that at that best-available result is at least levels deep.
-      impart_texture: function(material, levels) {
+      // Sets the material for the mesh material to a new material holding the
+      // best-currently-available texture for this object, and starts the
+      // process of ensuring that at that best-available result is at least the
+      // given number of levels deep. If the mesh already has a material that's
+      // using the best-available texture, this does not update the material.
+      update_material: function(mesh, levels) {
         if (this.best_texture_level < levels && this.textures[levels] == null) {
           this.render(levels);
         }
-        if (this.best_texture && material.map != this.best_texture) {
-          material.map = this.best_texture
-          material.map.needsUpdate = true;
-          material.needsUpdate = true;
+        if (this.best_texture && mesh.material.map != this.best_texture) {
+          mesh.material = new THREE.MeshBasicMaterial({
+            map: this.best_texture
+          });
+          mesh.needsUpdate = true;
+        } else if (this.best_texture) {
+          console.log("No update needed.");
+        } else {
+          // TODO: Display loading status here?
+          console.log("No texture available.");
         }
         // else we're out of luck; try again later
       }

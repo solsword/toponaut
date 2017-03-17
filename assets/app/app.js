@@ -63,13 +63,17 @@ config([
         'join': function() {
           // TODO: How to choose a specific world?
           var defer = $q.defer()
-          $http.get('/world/default').success(
+          $http.get('/world/default').then(
             function (resp) {
-              defer.resolve(resp);
+              defer.resolve(resp.data);
             }
-          ).error(
-            function (err) {
-              defer.reject(err);
+          ).catch(
+            function (resp) {
+              console.error(
+                "Topo join failed (/world/default)."
+              );
+              console.error(resp);
+              defer.reject(new Error("Request status " + resp.status));
             }
           );
           var myservice = this;
@@ -96,13 +100,18 @@ config([
             console.log("cache miss " + world_id + "/" + topo_id);
             var defer = $q.defer()
             this.cache(world_id, topo_id, defer.promise);
-            $http.get('/world/' + world_id + '/topo/get/' + topo_id).success(
+            $http.get('/world/' + world_id + '/topo/get/' + topo_id).then(
               function (resp) {
-                defer.resolve(resp);
+                defer.resolve(resp.data);
               }
-            ).error(
-              function (err) {
-                defer.reject(err);
+            ).catch(
+              function (resp) {
+                console.error(
+                  "Topo get failed (/world/" + world_id + "/topo/get/" +
+                  topo_id + "):"
+                );
+                console.error(resp);
+                defer.reject(new Error("Request status " + resp.status));
               }
             );
             return defer.promise;
@@ -110,16 +119,21 @@ config([
         },
 
         // TODO: Real editing API later...
-        'add': function(world_id, topo) {
+        'add': function(world_id, topo_id) {
           // TODO: Cache interaction
           var defer = $q.defer()
-          $http.post('/world/' + world_id + '/topo/add', topo).success(
+          $http.post('/world/' + world_id + '/topo/add/', topo_id).then(
             function (resp) {
-              defer.resolve(resp);
+              defer.resolve(resp.data);
             }
-          ).error(
-            function (err) {
-              defer.reject(err);
+          ).catch(
+            function (resp) {
+              console.error(
+                "Topo add failed (/world/" + world_id + "/topo/add/" +
+                topo_id + "):"
+              );
+              console.error(resp);
+              defer.reject(new Error("Request status " + resp.status));
             }
           );
           return defer.promise;
