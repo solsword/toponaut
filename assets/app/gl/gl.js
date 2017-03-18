@@ -158,7 +158,6 @@ angular.module('toponaut.gl', [])
           if ($scope.gl.pane) {
             $scope.gl.default_material.then(function (defm) {
               $scope.gl.pane.update_material(
-                $scope.gl.renderer,
                 $scope.gl.mesh,
                 ViewDepth,
                 defm
@@ -198,7 +197,7 @@ angular.module('toponaut.gl', [])
         $scope.gl_ready(function (pane) {
           $scope.gl.init(pane); // setup
           $scope.gl.animate(); // set off callback chain
-          return $scope; // give back our scope
+          return $scope.gl.renderer; // give back our renderer
         });
       },
     };

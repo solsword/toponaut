@@ -11,14 +11,14 @@ angular.module('toponaut.tileset', [])
     'w': "water",
   },
   colors: {
-    '?': [0xffaa00, 0xff7700],
+    '?': [0x440000, 0x000000],
     'W': [0xffffff, 0xdddddd],
     'f': [0x888888, 0x666666],
     'd': [0x443300, 0x332200],
     'c': [0x000000, 0x222222],
     'w': [0x003388, 0x2255bb],
   },
-  tile_border: 0.08,
+  tile_border: 0.12,
 })
 .service('Tileset',
   function() {

@@ -21,11 +21,12 @@ angular.module('toponaut.pane', ['toponaut.gl'])
     TextureRenderer,
     MaxTextureDepth
   ) {
-    var Pane = function (topo) {
+    var Pane = function (renderer, topo, orientation) {
       this.id = 0;
       this.world = topo.world;
+      this.renderer = renderer;
       this.topo = topo;
-      this.orientation = ORIENTATION.default;
+      this.orientation = orientation;
 
       // An array of promises that resolve to texture objects representing this
       // pane w/ varying levels of recursive panes included. It has
@@ -39,6 +40,9 @@ angular.module('toponaut.pane', ['toponaut.gl'])
       // texture you get but you need something immediately.
       this.best_texture_level = -1;
       this.best_texture = null
+
+      // When we construct a pane, immediately ask it to render at level 0.
+      this.render(0);
     }
 
     Pane.prototype = {
@@ -49,7 +53,7 @@ angular.module('toponaut.pane', ['toponaut.gl'])
       // be when levels>0. Note that textures are stored as promises. When a
       // higher-level texture is generated, it supersedes lower-level textures
       // and they are automatically recycled.
-      render: function(renderer, levels) {
+      render: function(levels) {
         if (levels > MaxTextureDepth) {
           console.warn(
             "Render request exceeds max supported levels (" + levels + " > " +
@@ -88,8 +92,8 @@ angular.module('toponaut.pane', ['toponaut.gl'])
                     if (!ref.pane) {
                       ref.pane = TopoService.get(this.world, ref.id).then(
                         function (topo) {
-                          return new Pane(topo);
-                        }
+                          return new Pane(this.renderer, topo, ref.r);
+                        }.bind(this)
                       );
                     }
                     // ref.pane is now a promise of a pane
@@ -100,7 +104,6 @@ angular.module('toponaut.pane', ['toponaut.gl'])
                 }).then(
                   function (pane) {
                     return pane.render(
-                      renderer,
                       levels - 1
                     ).then(function (texture) {
                       return {"pane": pane, "texture": texture};
@@ -126,6 +129,7 @@ angular.module('toponaut.pane', ['toponaut.gl'])
                     scene.add(mesh);
 
                     // Position the mesh appropriately:
+                    // TODO: Orientation!
                     mesh.position.set(
                       ref.x + (pt.pane.topo.size/8),
                       this.topo.size - (ref.y + (pt.pane.topo.size/8)),
@@ -143,7 +147,11 @@ angular.module('toponaut.pane', ['toponaut.gl'])
             // The chain is a promise that adds 0 or more objects to our scene.
             return chain.then(
               function () {
-                return TextureRenderer.render(renderer, scene, this.topo.size);
+                return TextureRenderer.render(
+                  this.renderer,
+                  scene,
+                  this.topo.size
+                );
               }.bind(this)
             );
           }.bind(this)
@@ -184,13 +192,12 @@ angular.module('toponaut.pane', ['toponaut.gl'])
       // no texture available for this pane, the given default_material is
       // applied.
       update_material: function(
-        renderer,
         mesh,
         levels,
         default_material
       ) {
         if (this.best_texture_level < levels && this.textures[levels] == null) {
-          this.render(renderer, levels);
+          this.render(levels);
         }
         if (this.best_texture && mesh.material.map != this.best_texture) {
           mesh.material = new THREE.MeshBasicMaterial({
