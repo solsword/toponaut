@@ -54,7 +54,7 @@ angular.module('toponaut.pane', ['toponaut.gl'])
           console.warn(
             "Render request exceeds max supported levels (" + levels + " > " +
             MaxTextureDepth + "). Rendering " + MaxTextureDepth +
-            "levels instead."
+            " levels instead."
           );
           levels = MaxTextureDepth;
         }
@@ -112,7 +112,8 @@ angular.module('toponaut.pane', ['toponaut.gl'])
                   function (pt) {
                     // Slap the texture on a plane mesh:
                     var mat = new THREE.MeshBasicMaterial({
-                      color: 0xff0000,
+                      color: 0xffffff,
+                      shading: THREE.FlatShading,
                       map:pt.texture,
                     });
                     var geom = new THREE.PlaneBufferGeometry(
@@ -126,8 +127,8 @@ angular.module('toponaut.pane', ['toponaut.gl'])
 
                     // Position the mesh appropriately:
                     mesh.position.set(
-                      (ref.x + 0.5) + (pt.pane.topo.size/8),
-                      this.topo.size - (ref.y + 0.5) + (pt.pane.topo.size/8),
+                      ref.x + (pt.pane.topo.size/8),
+                      this.topo.size - (ref.y + (pt.pane.topo.size/8)),
                       1
                     );
 
@@ -192,7 +193,6 @@ angular.module('toponaut.pane', ['toponaut.gl'])
           this.render(renderer, levels);
         }
         if (this.best_texture && mesh.material.map != this.best_texture) {
-          // TODO: DEBUG
           mesh.material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             shading: THREE.FlatShading,

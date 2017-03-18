@@ -2,9 +2,12 @@
 
 angular.module('toponaut.gl', [])
 
+.constant("ViewDepth", 2)
+
 .directive("topoGl", [
   "$q",
-  function ($q) {
+  "ViewDepth",
+  function ($q, ViewDepth) {
     return {
       restrict: "A",
       replace: false,
@@ -45,7 +48,6 @@ angular.module('toponaut.gl', [])
           $scope.gl.renderer.autoClear = true;
           $scope.gl.renderer.autoClearColor = true;
           $scope.gl.renderer.setClearColor(0xffaaff);
-          $scope.gl.renderer.clear();
 
           // Camera
           $scope.gl.camera = new THREE.OrthographicCamera(
@@ -74,9 +76,7 @@ angular.module('toponaut.gl', [])
           });
 
           // Drawing plane:
-          // TODO: DEBUG
-          //$scope.gl.geom = new THREE.PlaneBufferGeometry(200, 200);
-          $scope.gl.geom = new THREE.PlaneBufferGeometry(180, 180);
+          $scope.gl.geom = new THREE.PlaneBufferGeometry(200, 200);
           $scope.gl.mesh = new THREE.Mesh($scope.gl.geom, $scope.gl.material);
           $scope.gl.mesh.position.set(0, 0, 0);
           $scope.gl.scene.add($scope.gl.mesh);
@@ -160,12 +160,10 @@ angular.module('toponaut.gl', [])
               $scope.gl.pane.update_material(
                 $scope.gl.renderer,
                 $scope.gl.mesh,
-                2,
+                ViewDepth,
                 defm
               );
             });
-            // TODO: DEBUG
-            //$scope.gl.pane.update_material_test($scope.gl.mesh);
           } else {
             // TODO: display loading info here...
             console.log("no pane", $scope.gl.pane);
@@ -210,15 +208,13 @@ angular.module('toponaut.gl', [])
 .service("TextureRenderer", [
   "$q",
   function ($q) {
-    var scale = 16; // pixels per tile
+    var scale = 32; // pixels per tile
     var sizes = [4, 8, 16, 32];
     var cameras = {};
     for (var size of sizes) {
       var c = new THREE.OrthographicCamera(
-        //0, size, // left/right
-        //size, 0, // top/bottom
-        -size, size, // left/right
-        size, -size, // top/bottom
+        0, size, // left/right
+        size, 0, // top/bottom
         0, 100 // near/far (wind up at 50, -50)
       );
       c.up.set(0, 1, 0); // +y is up
@@ -250,40 +246,22 @@ angular.module('toponaut.gl', [])
           var old_size = renderer.getSize();
           renderer.setSize(size * scale, size * scale);
 
-          // clear the given renderer
-          renderer.clear();
-
           var camera = thisService.cameras[size];
           var target = new THREE.WebGLRenderTarget(
             size * scale, size * scale, // width, height
             {
-              minFilter: THREE.NearestFilter,
+              minFilter: THREE.LinearMipMapLinearFilter,
               magFilter: THREE.NearestFilter,
             }
           );
-          // TODO: DEBUG
-          var dm = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(size/2, size/2),
-            new THREE.MeshBasicMaterial({
-              color: 0x004488,
-              shading: THREE.FlatShading,
-            })
-          )
-          dm.position.set(size/2, size/2, -25);
-          scene = new THREE.Scene();
-          var light = new THREE.AmbientLight(0xffffff);
-          scene.add(light);
-          scene.add(dm);
+
+          // Render our scene to the new target:
           renderer.render(scene, camera, target);
 
           // set the renderer size back to its old value:
           renderer.setSize(old_size.width, old_size.height);
 
-          // TODO: DEBUG
-          // console.log(target);
-          // console.log(target.texture);
           return target.texture;
-          //return target;
         }).catch(function (err) {
           throw new Error("Failed to render texture.");
         });

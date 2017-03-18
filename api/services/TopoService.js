@@ -108,6 +108,9 @@ module.exports = {
         ).catch(
           Utils.give_up(Error("Failed to propagate all refs."))
         ).then(function (mapped_refs) {
+          // Save updated refs
+          return topo.save()
+        }).then(function () {
           return topo;
         });
       }).catch(Utils.give_up(Error("Failed to propagate.")));
@@ -121,13 +124,17 @@ module.exports = {
       var all_present = true;
       for (var ref of topo.refs) {
         if (!ref.hasOwnProperty("id")) {
+          // TODO: DEBUG
+          sails.log.error("Ref missing id");
           all_present = false;
           break;
         }
       }
       if (all_present) {
+        sails.log.info("No update required");
         return topo;
       } else {
+        sails.log.info("Must propagate");
         return TopoService.propagate(topo, 1);
       }
     }).catch(Utils.give_up(Error("Failed to propagate.")));
