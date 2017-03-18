@@ -11,7 +11,7 @@ angular.module('toponaut.tileset', [])
     'w': "water",
   },
   colors: {
-    '?': [0x000000, 0x000000],
+    '?': [0xffaa00, 0xff7700],
     'W': [0xffffff, 0xdddddd],
     'f': [0x888888, 0x666666],
     'd': [0x443300, 0x332200],
@@ -76,7 +76,7 @@ angular.module('toponaut.tileset', [])
           scale *= 1 - 2 * tileset.tile_border;
           geom = new THREE.PlaneBufferGeometry(scale, scale);
           var inner = new THREE.Mesh(geom, materials[1]);
-          inner.position.set(x, y, -0.5);
+          inner.position.set(x, y, 0.5);
 
           parent.add(outer);
           parent.add(inner);

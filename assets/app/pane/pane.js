@@ -1,7 +1,6 @@
 'use strict';
 
 angular.module('toponaut.pane', ['toponaut.gl'])
-.constant('TextureScale', 32)
 .constant('MaxTextureDepth', 3)
 .factory('Pane', [
   "$http",
@@ -11,7 +10,6 @@ angular.module('toponaut.pane', ['toponaut.gl'])
   "Tileset",
   "DefaultTileset",
   "TextureRenderer",
-  "TextureScale",
   "MaxTextureDepth",
   function(
     $http,
@@ -21,7 +19,6 @@ angular.module('toponaut.pane', ['toponaut.gl'])
     Tileset,
     DefaultTileset,
     TextureRenderer,
-    TextureScale,
     MaxTextureDepth
   ) {
     var Pane = function (topo) {
@@ -47,12 +44,12 @@ angular.module('toponaut.pane', ['toponaut.gl'])
     Pane.prototype = {
       constructor: Pane,
       // Updates the pane's current textures according to the tiles it
-      // contains. Referenced panes are not considered/affected when levels=0,
-      // but their lower-level textures will be when levels>0. Note that
-      // textures are stored as promises. When a higher-level texture is
-      // generated, it supersedes lower-level textures and they are
-      // automatically recycled.
-      render: function(levels) {
+      // contains, using the given rendering context. Referenced panes are not
+      // considered/affected when levels=0, but their lower-level textures will
+      // be when levels>0. Note that textures are stored as promises. When a
+      // higher-level texture is generated, it supersedes lower-level textures
+      // and they are automatically recycled.
+      render: function(renderer, levels) {
         if (levels > MaxTextureDepth) {
           console.warn(
             "Render request exceeds max supported levels (" + levels + " > " +
@@ -64,9 +61,6 @@ angular.module('toponaut.pane', ['toponaut.gl'])
 
         this.textures[levels] = $q.resolve(null).then(
           function () {
-            // Parameters
-            var texture_size = TextureScale * this.topo.size;
-
             // Create a scene for use with TextureRenderer.render
             var scene = new THREE.Scene();
             var light = new THREE.AmbientLight(0xffffff);
@@ -78,9 +72,9 @@ angular.module('toponaut.pane', ['toponaut.gl'])
               for (var y = 0; y < this.topo.size; y += 1) {
                 add_tile(
                   this.topo.tiles[y*this.topo.size + x],
-                  (x + 0.5) * TextureScale,
-                  (y + 0.5) * TextureScale,
-                  TextureScale
+                  (x + 0.5),
+                  this.topo.size - (y + 0.5),
+                  1
                 );
               }
             }
@@ -105,7 +99,10 @@ angular.module('toponaut.pane', ['toponaut.gl'])
                   throw new Error("Failed to fetch topo.");
                 }).then(
                   function (pane) {
-                    return pane.render(levels - 1).then(function (texture) {
+                    return pane.render(
+                      renderer,
+                      levels - 1
+                    ).then(function (texture) {
                       return {"pane": pane, "texture": texture};
                     });
                   }
@@ -114,7 +111,10 @@ angular.module('toponaut.pane', ['toponaut.gl'])
                 }).then(
                   function (pt) {
                     // Slap the texture on a plane mesh:
-                    var mat = new THREE.MeshBasicMaterial({map:pt.texture});
+                    var mat = new THREE.MeshBasicMaterial({
+                      color: 0xff0000,
+                      map:pt.texture,
+                    });
                     var geom = new THREE.PlaneBufferGeometry(
                       pt.pane.topo.size,
                       pt.pane.topo.size
@@ -127,8 +127,8 @@ angular.module('toponaut.pane', ['toponaut.gl'])
                     // Position the mesh appropriately:
                     mesh.position.set(
                       (ref.x + 0.5) + (pt.pane.topo.size/8),
-                      (ref.y + 0.5) + (pt.pane.topo.size/8),
-                      -1
+                      this.topo.size - (ref.y + 0.5) + (pt.pane.topo.size/8),
+                      1
                     );
 
                     // Scale the mesh:
@@ -142,7 +142,7 @@ angular.module('toponaut.pane', ['toponaut.gl'])
             // The chain is a promise that adds 0 or more objects to our scene.
             return chain.then(
               function () {
-                return TextureRenderer.render(scene, this.topo.size);
+                return TextureRenderer.render(renderer, scene, this.topo.size);
               }.bind(this)
             );
           }.bind(this)
@@ -152,8 +152,8 @@ angular.module('toponaut.pane', ['toponaut.gl'])
           function (texture) {
             // TODO: Fix this race condition?
             if (levels > this.best_texture_level) {
-              this.best_texture = texture;
               this.best_texture_level = levels;
+              this.best_texture = texture;
             }
             // TODO: Fix this race condition?
             for (var i = 0; i < levels; ++i) {
@@ -177,25 +177,65 @@ angular.module('toponaut.pane', ['toponaut.gl'])
       // Sets the material for the mesh material to a new material holding the
       // best-currently-available texture for this object, and starts the
       // process of ensuring that at that best-available result is at least the
-      // given number of levels deep. If the mesh already has a material that's
-      // using the best-available texture, this does not update the material.
-      update_material: function(mesh, levels) {
+      // given number of levels deep (using the given rendering context for
+      // this process). If the mesh already has a material that's using the
+      // best-available texture, this does not update the material. If there is
+      // no texture available for this pane, the given default_material is
+      // applied.
+      update_material: function(
+        renderer,
+        mesh,
+        levels,
+        default_material
+      ) {
         if (this.best_texture_level < levels && this.textures[levels] == null) {
-          this.render(levels);
+          this.render(renderer, levels);
         }
         if (this.best_texture && mesh.material.map != this.best_texture) {
+          // TODO: DEBUG
           mesh.material = new THREE.MeshBasicMaterial({
-            map: this.best_texture
+            color: 0xffffff,
+            shading: THREE.FlatShading,
+            map: this.best_texture,
           });
           mesh.needsUpdate = true;
         } else if (this.best_texture) {
+          //console.log("No update needed.", mesh.material);
           console.log("No update needed.");
         } else {
           // TODO: Display loading status here?
+          //console.log("No texture available.", mesh.material);
           console.log("No texture available.");
+          if (mesh.material != default_material) {
+            mesh.material = default_material;
+            mesh.needsUpdate = true;
+          }
         }
         // else we're out of luck; try again later
-      }
+      },
+
+      update_material_test: function(mesh) {
+        var loader = new THREE.TextureLoader();
+        loader.load(
+          "/app/img/default.png",
+          function (texture) {
+            texture.minFilter = THREE.NearestFilter;
+            texture.magFilter = THREE.NearestFilter;
+            mesh.material = new THREE.MeshBasicMaterial({
+              map: texture,
+              shading: THREE.FlatShading,
+            });
+            console.log("Default texture loaded.");
+            mesh.needsUpdate = true;
+          },
+          function (progress) {
+            console.log((progress.loaded / progress.total * 100) + "% loaded");
+          },
+          function (error) {
+            throw new Error("Failed to load 'default.png' texture.");
+          }
+        );
+      },
     }
 
     return Pane;
