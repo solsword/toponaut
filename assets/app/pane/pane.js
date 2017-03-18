@@ -3,7 +3,6 @@
 angular.module('toponaut.pane', ['toponaut.gl'])
 .constant('MaxTextureDepth', 3)
 .factory('Pane', [
-  "$http",
   "$q",
   "TopoService",
   "ORIENTATION",
@@ -12,7 +11,6 @@ angular.module('toponaut.pane', ['toponaut.gl'])
   "TextureRenderer",
   "MaxTextureDepth",
   function(
-    $http,
     $q,
     TopoService,
     ORIENTATION,
@@ -31,15 +29,15 @@ angular.module('toponaut.pane', ['toponaut.gl'])
       // An array of promises that resolve to texture objects representing this
       // pane w/ varying levels of recursive panes included. It has
       // MaxTextureDepth + 1 total entries.
-      this.textures = [];
+      this.topo.textures = [];
       for (var i = 0; i < MaxTextureDepth + 1; ++i) {
-        this.textures.push(null);
+        this.topo.textures.push(null);
       }
       // The level of the best completed texture so far, and a non-promise
       // reference to it. Use this when you don't care about what level of
       // texture you get but you need something immediately.
-      this.best_texture_level = -1;
-      this.best_texture = null
+      this.topo.best_texture_level = -1;
+      this.topo.best_texture = null
 
       // When we construct a pane, immediately ask it to render at level 0.
       this.render(0);
@@ -63,7 +61,7 @@ angular.module('toponaut.pane', ['toponaut.gl'])
           levels = MaxTextureDepth;
         }
 
-        this.textures[levels] = $q.resolve(null).then(
+        this.topo.textures[levels] = $q.resolve(null).then(
           function () {
             // Create a scene for use with TextureRenderer.render
             var scene = new THREE.Scene();
@@ -160,27 +158,27 @@ angular.module('toponaut.pane', ['toponaut.gl'])
         }).then(
           function (texture) {
             // TODO: Fix this race condition?
-            if (levels > this.best_texture_level) {
-              this.best_texture_level = levels;
-              this.best_texture = texture;
+            if (levels > this.topo.best_texture_level) {
+              this.topo.best_texture_level = levels;
+              this.topo.best_texture = texture;
             }
             // TODO: Fix this race condition?
             for (var i = 0; i < levels; ++i) {
               if (
-                this.textures[levels]
-             && this.textures[i] != this.textures[levels]
+                this.topo.textures[levels]
+             && this.topo.textures[i] != this.topo.textures[levels]
               ) {
-                if (this.textures[i]) {
+                if (this.topo.textures[i]) {
                   // TODO: Does this work?
-                  this.textures[i].then(function (tx) { tx.dispose(); });
+                  this.topo.textures[i].then(function (tx) { tx.dispose(); });
                 }
-                this.textures[i] = this.textures[levels];
+                this.topo.textures[i] = this.topo.textures[levels];
               }
             }
             return texture;
           }.bind(this)
         );
-        return this.textures[levels]; // return a promise
+        return this.topo.textures[levels]; // return a promise
       },
 
       // Sets the material for the mesh material to a new material holding the
@@ -196,17 +194,23 @@ angular.module('toponaut.pane', ['toponaut.gl'])
         levels,
         default_material
       ) {
-        if (this.best_texture_level < levels && this.textures[levels] == null) {
+        if (
+          this.topo.best_texture_level < levels
+       && this.topo.textures[levels] == null
+        ) {
           this.render(levels);
         }
-        if (this.best_texture && mesh.material.map != this.best_texture) {
+        if (
+          this.topo.best_texture
+       && mesh.material.map != this.topo.best_texture
+        ) {
           mesh.material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             shading: THREE.FlatShading,
-            map: this.best_texture,
+            map: this.topo.best_texture,
           });
           mesh.needsUpdate = true;
-        } else if (this.best_texture) {
+        } else if (this.topo.best_texture) {
           //console.log("No update needed.", mesh.material);
           console.log("No update needed.");
         } else {
