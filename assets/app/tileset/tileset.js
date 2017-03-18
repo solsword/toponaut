@@ -18,7 +18,7 @@ angular.module('toponaut.tileset', [])
     'c': [0x000000, 0x222222],
     'w': [0x003388, 0x2255bb],
   },
-  tile_border: 0.12,
+  tile_border: 0.125,
 })
 .service('Tileset',
   function() {

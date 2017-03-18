@@ -207,7 +207,7 @@ angular.module('toponaut.gl', [])
 .service("TextureRenderer", [
   "$q",
   function ($q) {
-    var scale = 32; // pixels per tile
+    var scale = 64; // pixels per tile
     var sizes = [4, 8, 16, 32];
     var cameras = {};
     for (var size of sizes) {
